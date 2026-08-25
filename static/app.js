@@ -18,6 +18,7 @@ const STORE = {
   memorySeedMigration: "clean_master.memory_seed_migration.v1",
   photoPairs: "clean_master.photo_pair_hashes.v1",
   completedAreas: "clean_master.completed_areas.v1",
+  weeklyPlan: "clean_master.weekly_plan.v1",
 };
 const AUTH = {
   accounts: "clean_master.local_accounts.v1",
@@ -31,7 +32,7 @@ const LABELS = {
 };
 const CARE_STEP_MEMORY = 3;
 const MEMORY_PLANT_COST = 1;
-const state = { step: 1, scenario: 0, guide: null, images: {} };
+const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null };
 
 const DECOR_ITEMS = [
   { id: "scarecrow", icon: "🌾", title: "밀짚 허수아비", body: "사람 캐릭터와 헷갈리지 않는 볏짚 표식이에요.", cost: 15 },
@@ -109,7 +110,8 @@ function startSignedInApp() {
   document.body.classList.toggle("easy", !!settings.easy);
   updateZoomButton(!!settings.easy);
   renderAccount();
-  showView(["home", "mission", "room", "community", "cash", "history"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home");
+  const requested = ["home", "mission", "room", "community", "cash"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home";
+  showView(read(STORE.weeklyPlan, null) ? requested : "mission");
   updateCounters(); renderDailyMission(); renderSpendShop(); renderRoom(); health();
 }
 async function submitLogin(event) {
@@ -152,9 +154,8 @@ function showView(id) {
   $$(".bottom-nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === id));
   if (id === "room") renderRoom();
   if (id === "cash") renderCash();
-  if (id === "history") renderHistory();
   if (id === "community") renderCommunity();
-  if (id === "mission") renderAvailableAreas();
+  if (id === "mission") renderWeeklyPlan();
   location.hash = id;
   scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -754,6 +755,7 @@ async function imageData(file) {
 
 function bindImage(inputId, previewId, key, onReady) {
   const input = $(`#${inputId}`), preview = $(`#${previewId}`);
+  if (!input || !preview) return;
   input.addEventListener("change", async () => {
     try {
       const data = await imageData(input.files[0]); state.images[key] = data; preview.src = data; preview.parentElement.classList.add("has-image");
@@ -982,7 +984,7 @@ const GARDEN_STAGES = [
 ];
 
 function completedGardenMissions() {
-  return read(STORE.history, []).filter((record) => record.beforeAfter && record.completed).length;
+  return read(STORE.history, []).filter((record) => record.completed && (record.beforeAfter || record.plannedCompleted)).length;
 }
 
 function renderRoom() {
@@ -1014,12 +1016,91 @@ roomSurface?.addEventListener("pointerleave", () => {
   roomSurface.style.setProperty("--fallback-ry", "0deg");
 });
 
+const PLAN_AREAS = ["desk", "sink", "bathroom", "kitchen", "bed", "sofa", "shoe_rack"];
+const PLAN_TASKS = {
+  desk: "책상 위 한 구역을 비우고 가볍게 닦기",
+  sink: "싱크대 주변의 물기와 작은 부스러기 정리하기",
+  bathroom: "욕실에서 눈에 보이는 한 곳만 닦고 물기 걷기",
+  kitchen: "주방 조리대 한 면을 비우고 닦기",
+  bed: "침구를 펴고 침대 주변 한 가지 정리하기",
+  sofa: "소파 위 물건을 제자리에 두고 쿠션 정돈하기",
+  shoe_rack: "현관 신발 한 켤레와 바닥 주변 정리하기",
+};
+const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
+
+function mondayKey(date = new Date()) {
+  const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = copy.getDay() || 7;
+  copy.setDate(copy.getDate() - day + 1);
+  return copy.toLocaleDateString("en-CA");
+}
+function planDate(weekStart, index) { const date = new Date(`${weekStart}T12:00:00`); date.setDate(date.getDate() + index); return date.toLocaleDateString("en-CA"); }
+function createWeeklyPlan(areas) {
+  const weekStart = mondayKey();
+  return { weekStart, areas, tasks: DAY_LABELS.map((day, index) => {
+    const area = areas[index % areas.length];
+    return { date: planDate(weekStart, index), day, area, task: PLAN_TASKS[area] };
+  }) };
+}
+function activeWeeklyPlan() {
+  const plan = read(STORE.weeklyPlan, null);
+  if (!plan?.areas?.length) return null;
+  if (plan.weekStart === mondayKey()) return plan;
+  const refreshed = createWeeklyPlan(plan.areas);
+  write(STORE.weeklyPlan, refreshed);
+  return refreshed;
+}
+function todayPlan(plan = activeWeeklyPlan()) { return plan?.tasks.find((task) => task.date === today()) || plan?.tasks[0]; }
+function planRecord(task) { return read(STORE.history, []).find((record) => record.id === `weekly-${task.date}`); }
+function renderWeeklyPlan() {
+  const setup = $("#planSetup"), tracker = $("#weeklyTracker");
+  if (!setup || !tracker) return;
+  const plan = activeWeeklyPlan();
+  setup.classList.toggle("hidden", !!plan);
+  tracker.classList.toggle("hidden", !plan);
+  if (!plan) {
+    if (!state.planAreas.length) state.planAreas = ["desk", "bathroom", "sink"];
+    $("#planAreaCards").innerHTML = PLAN_AREAS.map((area) => `<button type="button" class="plan-area-card ${state.planAreas.includes(area) ? "selected" : ""}" data-plan-area="${area}" aria-pressed="${state.planAreas.includes(area)}"><span>${({ desk: "🖥️", sink: "🚰", bathroom: "🛁", kitchen: "🍳", bed: "🛏️", sofa: "🛋️", shoe_rack: "👟" })[area]}</span><b>${LABELS.area[area]}</b></button>`).join("");
+    $$('[data-plan-area]').forEach((button) => button.addEventListener("click", () => {
+      const area = button.dataset.planArea;
+      state.planAreas = state.planAreas.includes(area) ? state.planAreas.filter((item) => item !== area) : [...state.planAreas, area];
+      renderWeeklyPlan();
+    }));
+    return;
+  }
+  const current = todayPlan(plan);
+  $("#weeklyTitle").textContent = `${new Date(`${plan.weekStart}T12:00:00`).getMonth() + 1}월의 작은 계획`;
+  $("#weeklyCalendar").innerHTML = plan.tasks.map((task) => {
+    const done = !!planRecord(task)?.plannedCompleted;
+    const active = task.date === today();
+    return `<article class="week-day ${active ? "today" : ""} ${done ? "done" : ""}"><span>${task.day}</span><b>${LABELS.area[task.area]}</b><small>${done ? "기록 완료 ✓" : task.task}</small></article>`;
+  }).join("");
+  const done = !!planRecord(current)?.plannedCompleted;
+  $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>청소 전 사진 한 장만 남기면 오늘의 기록이 돼요. 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>${state.planPhoto ? "사진 바꾸기" : "＋ 사진 남기기"}</span></label><button id="completePlanTask" class="primary" ${done ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : "오늘의 돌봄 기록하기 · +3조각"}</button>`;
+  $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
+  $("#completePlanTask").addEventListener("click", () => completePlanTask(current));
+}
+function completePlanTask(task) {
+  if (!state.planPhoto) return toast("오늘 돌볼 곳의 청소 전 사진을 한 장 남겨주세요.");
+  const list = read(STORE.history, []);
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: task.area, categories: ["clean"], guideType: "weekly_tracker", completed: true, beforeAfter: false, plannedCompleted: true, photoRecorded: true };
+  const index = list.findIndex((item) => item.id === record.id);
+  if (index >= 0) list[index] = record; else list.unshift(record);
+  write(STORE.history, list.slice(0, 50));
+  reward(`weekly-plan-${task.date}`, 3, `${LABELS.area[task.area]} 주간 돌봄 기록`);
+  state.planPhoto = null;
+  renderWeeklyPlan(); renderRoom(); renderCash();
+  toast("오늘의 작은 돌봄을 기록했어요. 텃밭도 한 단계 자라요.");
+}
+
 function renderCash() {
   updateCounters();
   renderSpendShop();
   const events = cashEvents().filter((e) => e.amount !== 0);
   $("#cashEvents").className = events.length ? "" : "empty";
   $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.title)}</b><br><small>${new Date(e.at).toLocaleString("ko-KR")}</small></div><strong class="${e.amount < 0 ? "spent" : "earned"}">${e.amount > 0 ? "+" : ""}${e.amount}조각</strong></div>`).join("") : "아직 기억의 조각 내역이 없어요.";
+  $("#recordPlanCount").textContent = read(STORE.history, []).filter((record) => record.plannedCompleted).length;
+  renderHistory();
 }
 
 function renderHistory() {
@@ -1042,6 +1123,14 @@ const DAILY_MISSIONS = [
   ["바닥의 작은 물건 하나 줍기", "공간 전체가 아니라 발밑의 한 가지에만 집중해요."],
 ];
 function renderDailyMission() {
+  const planned = todayPlan();
+  if (planned) {
+    $("#dailyTitle").textContent = `${LABELS.area[planned.area]} 돌봄`;
+    $("#dailyBody").textContent = planned.task;
+    $("#completeDaily").textContent = planRecord(planned)?.plannedCompleted ? "오늘의 기록 완료 ✓" : "오늘 계획 보기";
+    $("#completeDaily").disabled = false;
+    return;
+  }
   const start = new Date(new Date().getFullYear(), 0, 0);
   const index = Math.floor((new Date() - start) / 86400000) % DAILY_MISSIONS.length;
   const mission = DAILY_MISSIONS[index];
@@ -1071,17 +1160,30 @@ $$('[data-spend-tab]').forEach((b) => b.addEventListener("click", () => setSpend
 $$('[data-prev]').forEach((b) => b.addEventListener("click", () => goStep(Number(b.dataset.prev))));
 bindImage("areaImage", "areaPreview", "area");
 bindImage("afterImage", "afterPreview", "after");
-$("#removeArea").addEventListener("click", () => { delete state.images.area; $("#areaImage").value = ""; $("#areaPreview").parentElement.classList.remove("has-image"); $("#removeArea").classList.add("hidden"); });
-$("#areaImage").addEventListener("change", () => $("#removeArea").classList.remove("hidden"));
-$("#analyzeArea").addEventListener("click", analyzeArea);
-$("#confirmArea").addEventListener("click", confirmArea);
-$("#comparePhotos").addEventListener("click", comparePhotos);
-$("#startNewMission").addEventListener("click", resetMissionForNewArea);
-$("#careArea").addEventListener("change", renderCareSummary);
-$("#finishWithoutPhoto").addEventListener("click", () => { saveHistory({ completed: false, awaitingPhotoVerification: true }); toast("사진 없이 기록만 저장했어요. 기억의 조각은 청소 후 사진 확인 뒤에 남아요."); showView("history"); });
+$("#removeArea")?.addEventListener("click", () => { delete state.images.area; $("#areaImage").value = ""; $("#areaPreview").parentElement.classList.remove("has-image"); $("#removeArea").classList.add("hidden"); });
+$("#areaImage")?.addEventListener("change", () => $("#removeArea").classList.remove("hidden"));
+$("#analyzeArea")?.addEventListener("click", analyzeArea);
+$("#confirmArea")?.addEventListener("click", confirmArea);
+$("#comparePhotos")?.addEventListener("click", comparePhotos);
+$("#startNewMission")?.addEventListener("click", resetMissionForNewArea);
+$("#careArea")?.addEventListener("change", renderCareSummary);
+$("#finishWithoutPhoto")?.addEventListener("click", () => { saveHistory({ completed: false, awaitingPhotoVerification: true }); toast("사진 없이 기록만 저장했어요. 기억의 조각은 청소 후 사진 확인 뒤에 남아요."); showView("cash"); });
 $("#easyToggle").addEventListener("click", () => { const active = !document.body.classList.contains("easy"); document.body.classList.toggle("easy", active); updateZoomButton(active); write(STORE.settings, { easy: active }); });
-$("#clearHistory").addEventListener("click", () => { if (confirm("저장된 분석 기록을 모두 삭제할까요?")) { write(STORE.history, []); renderHistory(); } });
-$("#completeDaily").addEventListener("click", () => { reward("daily-care", 3, "오늘의 생활 돌봄 미션"); renderDailyMission(); });
+$("#clearHistory")?.addEventListener("click", () => { if (confirm("저장된 돌봄 기록을 모두 삭제할까요?")) { write(STORE.history, []); renderCash(); renderRoom(); } });
+$("#saveWeeklyPlan").addEventListener("click", () => {
+  if (state.planAreas.length < 2) return toast("부담 없이 나누려면 돌볼 곳을 2곳 이상 골라주세요.");
+  write(STORE.weeklyPlan, createWeeklyPlan(state.planAreas));
+  state.planPhoto = null;
+  renderWeeklyPlan(); renderDailyMission();
+  toast("이번 주에는 하루 한 가지씩만 해볼까요?");
+});
+$("#resetWeeklyPlan").addEventListener("click", () => {
+  const plan = activeWeeklyPlan();
+  state.planAreas = plan?.areas || [];
+  write(STORE.weeklyPlan, null);
+  renderWeeklyPlan();
+});
+$("#completeDaily").addEventListener("click", () => showView("mission"));
 $("#communityForm").addEventListener("submit", submitCommunityPost);
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());

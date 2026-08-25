@@ -204,14 +204,17 @@ def test_single_garden_starts_as_a_plain_vegetable_patch() -> None:
     assert 'class="farmer-customizer"' not in markup
 
 
-def test_cleaning_guide_is_shown_on_one_page_without_step_by_step_completion() -> None:
+def test_weekly_tracker_replaces_step_by_step_cleaning_flow() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
-    assert 'id="guideSteps"' in markup
+    assert 'id="planSetup"' in markup
+    assert 'id="weeklyCalendar"' in markup
+    assert 'id="planPhotoInput"' in source
+    assert "createWeeklyPlan" in source
+    assert "completePlanTask" in source
     assert 'id="nextScenario"' not in markup
-    assert 'id="prevScenario"' not in markup
-    assert 'data-speak-guide-step' in source
-    assert 'guide-step-card' in source
+    assert "음성으로 듣기" not in markup
+    assert 'data-view="history"' not in markup
 
 
 def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:

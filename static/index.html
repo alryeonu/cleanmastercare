@@ -66,46 +66,9 @@
     </section>
 
     <section class="page shell" id="mission">
-        <div class="page-head">
-        <button class="back reset" data-view="home">←</button>
-        <div><span class="kicker">HOME CARE MISSION</span><h1>우리 집 돌봄 미션</h1><p>장소와 할 일을 고르고, 사진으로 변화를 다시 확인해요.</p></div>
-      </div>
-      <div class="progress" aria-label="진행 단계"><i class="on"></i><i></i><i></i><span id="progressText">1 / 3 사진 관찰</span></div>
-
-      <section class="mission-step active" data-step="1">
-        <div class="step-heading"><span>01</span><div><h2>돌볼 곳 사진만 남겨주세요</h2><p>장소 하나와 청소 전 사진만 고르면, 다음 화면에서 사진을 보고 할 일을 확인할 수 있어요.</p></div></div>
-        <div class="card care-scope-card"><label>돌볼 장소<select id="careArea"><option value="desk">책상</option><option value="sink">싱크대</option><option value="sofa">소파</option><option value="bed">침대·침구</option><option value="shoe_rack">신발장</option><option value="bathroom">욕실</option><option value="kitchen">주방</option><option value="other">다른 공간</option></select><small id="careAreaNote">전후 사진으로 완료된 장소는 이번 기록에서 다시 선택할 수 없어요.</small></label><p class="care-scope-note">복잡한 설정 없이 사진에서 보이는 부분만 직접 확인해요.</p></div>
-        <div class="card photo-pair-grid before-photo-only">
-          <label class="upload-zone" id="areaZone"><input id="areaImage" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span class="photo-label before-label">BEFORE</span><span class="upload-plus">＋</span><strong>청소 전 사진</strong><small>JPG · PNG · WEBP, 최대 10MB</small><img id="areaPreview" alt="청소 전 사진 미리보기"></label>
-        </div>
-        <div class="photo-tip pair-tip"><span class="tip-art">▦</span><div><h3>청소 전 모습을 남겨요</h3><p>청소 후 사진은 모든 단계를 끝낸 뒤, 마지막 확인 화면에서 같은 구도로 등록해요. 사진 원본은 저장하지 않아요.</p></div><button id="removeArea" class="text-button hidden">전 사진 지우기</button></div>
-        <button id="analyzeArea" class="primary next">사진 관찰하기</button>
-      </section>
-
-      <section class="mission-step" data-step="2">
-        <div class="step-heading"><span>02</span><div><h2>할 일을 확인해주세요</h2><p id="areaSummary">사진만으로 틀릴 수 있어요. 실제 공간을 보고 선택을 수정해주세요.</p></div></div>
-        <div class="card confirm-card">
-          <div class="observation" id="observations"><span>AI의 관찰 근거가 여기에 표시돼요.</span></div>
-          <div class="form-grid one-field"><label>사진에서 우선 해결할 문제<select id="cleaningFocus"><option value="unknown">직접 선택해주세요</option><option value="water_scale">물때·광물 자국</option><option value="soap_scum">비누막</option><option value="grease">기름때</option><option value="dust">먼지·부스러기</option><option value="clutter">물건 정리</option><option value="laundry">세탁할 천·의류</option></select><small>AI 제안은 틀릴 수 있으니 사진을 보고 수정하세요.</small></label></div>
-          <div id="selectedCareSummary" class="observation"><span>선택한 할 일이 여기에 표시돼요.</span></div>
-          <label class="confirm-check"><input id="areaConfirmed" type="checkbox"><span><b>사진과 실제 공간을 비교했습니다.</b><small>다르면 이전 단계에서 장소와 할 일을 수정해주세요.</small></span></label>
-        </div>
-        <div class="button-row"><button class="secondary" data-prev="1">이전</button><button id="confirmArea" class="primary">이대로 확정</button></div>
-      </section>
-
-      <section class="mission-step" data-step="3">
-        <div class="step-heading"><span>03</span><div><h2>청소 방법을 한눈에 볼까요?</h2><p id="guideIntro">오염 종류에 맞춘 안전한 청소 순서예요. 각 단계는 누르지 않아도 한 화면에서 볼 수 있어요.</p></div></div>
-        <section id="guideSteps" class="guide-steps" aria-live="polite"></section>
-        <section id="completion" class="completion">
-          <span class="completion-mark">✓</span><h2>청소 후 사진으로 확인해요</h2><p>사진 비교에서 실제로 확인된 단계마다 기억의 조각이 남아요.</p>
-          <div class="after-photo-capture"><div><span class="kicker">AFTER PHOTO</span><h3>모든 단계를 마쳤다면<br>청소 후 사진을 등록해주세요</h3><p>청소 전 사진과 비슷한 구도로 촬영하면 확인이 더 정확해져요.</p></div><label class="mini-upload" id="afterZone"><input id="afterImage" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>＋</span><strong>청소 후 사진 등록</strong><img id="afterPreview" alt="청소 후 사진 미리보기"></label></div>
-          <div class="compare-grid"><div class="pair-summary"><span>BEFORE</span><img id="compareBeforePreview" alt="비교용 청소 전 사진"><strong>청소 전</strong></div><div class="pair-summary"><span>AFTER</span><img id="compareAfterPreview" alt="비교용 청소 후 사진"><strong>청소 후</strong></div></div>
-          <div class="compare-actions"><div><h3>사진으로 3개 미션 확인하기</h3><p>청소 후 사진에서 확인된 완료 흔적마다 기억의 조각 3개를 남겨요. 같은 날 같은 단계는 다른 사진 조합이어도 다시 쌓이지 않아요.</p></div><button id="comparePhotos" class="secondary">사진으로 완료 확인하기</button><button id="finishWithoutPhoto" class="text-button">사진만 없이 기록하기</button></div>
-          <section id="comparisonChecklist" class="comparison-checklist hidden" aria-live="polite"></section>
-          <div id="compareResult"></div>
-          <button id="startNewMission" class="primary wide-mobile hidden" type="button">새로운 장소 청소 시작하기 <span>→</span></button>
-        </section>
-      </section>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">WEEKLY CARE PLAN</span><h1>이번 주 돌봄 계획</h1><p>처음 한 번만 관리할 곳을 고르면, 부담 없는 한 가지씩 7일 계획으로 나눠드려요.</p></div></div>
+      <section id="planSetup" class="plan-setup card"><span class="kicker">FIRST SETUP</span><h2>어느 곳을 꾸준히 돌보고 싶나요?</h2><p>2~5곳을 고르면 한 주에 한 가지씩 고르게 배치해요. 언제든 다시 만들 수 있어요.</p><div id="planAreaCards" class="plan-area-cards" aria-label="돌봄 장소 선택"></div><button id="saveWeeklyPlan" class="primary">이번 주 계획 만들기</button></section>
+      <section id="weeklyTracker" class="weekly-tracker hidden"><div class="tracker-head"><div><span class="kicker">THIS WEEK</span><h2 id="weeklyTitle">이번 주 작은 계획</h2></div><button id="resetWeeklyPlan" class="text-button">장소 다시 고르기</button></div><div id="weeklyCalendar" class="weekly-calendar" aria-label="이번 주 청소 계획표"></div><article id="todayPlanCard" class="today-plan-card card"></article></section>
     </section>
 
     <section class="page shell" id="room">
@@ -116,6 +79,7 @@
             <div class="farm-sky"><span class="farm-sun">☀</span><i class="cloud cloud-one"></i><i class="cloud cloud-two"></i></div>
             <div class="farm-hills"></div>
             <div class="farm-land">
+              <div class="garden-house" aria-hidden="true"><i></i><b></b><span></span></div>
               <div class="simple-garden-bed" aria-live="polite"><span class="garden-stage-icon" id="gardenStageIcon">▦</span><strong id="gardenStageLabel">텃밭</strong><small id="gardenStageHint">첫 청소 미션을 마치면 기억의 조각 씨앗이 심어져요.</small></div>
             </div>
           </div>
@@ -135,19 +99,14 @@
     <section class="page shell" id="cash">
       <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MEMORY PIECES</span><h1>행동이 남긴 기억의 조각</h1><p>청소를 시작하고 한 단계를 마주한 순간이 조각으로 남아 기억나무의 씨앗이 돼요.</p></div></div>
       <div class="cash-hero"><div><span>간직한 조각</span><strong><span data-cash>0</span>개</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
-      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY MEMORY FARM</span><h2>기억의 조각을 농장에 남겨요</h2><p>조각을 바로 심어 기억나무를 키우거나, 농장과 농부 친구를 꾸밀 수 있어요.</p><div class="collection-pill">내 조경 <b data-decor-count>0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🌳</div><div><span>나의 돌봄 농장</span><button class="link-button" data-view="room">기억나무 심기 →</button></div></div><div class="spend-balance"><span>간직한 기억</span><strong><span data-cash>0</span>조각</strong></div></section>
+      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY CARE RECORD</span><h2>기억과 기록을 한곳에</h2><p>이번 주 계획을 지킨 순간과 기억의 조각을 함께 볼 수 있어요.</p><div class="collection-pill">완료한 계획 <b id="recordPlanCount">0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🏡</div><div><span>집 앞 나의 텃밭</span><button class="link-button" data-view="room">텃밭 보러 가기 →</button></div></div><div class="spend-balance"><span>간직한 기억</span><strong><span data-cash>0</span>조각</strong></div></section>
       <div class="spend-tabs" role="tablist" aria-label="기억의 조각 사용처"><button class="active" data-spend-tab="decor" role="tab" aria-selected="true">농장 꾸미기</button><button data-spend-tab="outfit" role="tab" aria-selected="false">농부 옷</button><button data-spend-tab="gift" role="tab" aria-selected="false">기프티콘 선택</button></div>
       <section id="decorShop" class="spend-panel" aria-label="농장 꾸미기 아이템"><div class="spend-panel-head"><div><span class="kicker">FARM DECOR SHOP</span><h2>농장에 조경을 더해 볼까요?</h2></div><button class="secondary" data-view="room">내 농장 보기</button></div><p class="spend-note">한 번 고른 조경은 기억의 조각을 다시 쓰지 않아도 농장에 남아요.</p><div id="decorGrid" class="spend-grid"></div></section>
       <section id="outfitShop" class="spend-panel hidden" aria-label="농부 옷 상점"><div class="spend-panel-head"><div><span class="kicker">FARMER CLOSET</span><h2>농부 친구에게 새 옷을 선물해요</h2></div><button class="secondary" data-view="room">입혀 보러 가기</button></div><p class="spend-note">구입한 옷은 농장 속 캐릭터 꾸미기 옷장에 영구 보관돼요.</p><div id="outfitGrid" class="spend-grid"></div></section>
       <section id="giftShop" class="spend-panel hidden" aria-label="기프티콘 선택"><div class="spend-panel-head"><div><span class="kicker">A LITTLE TREAT</span><h2>오늘의 나에게 작은 선물</h2></div></div><div id="giftGrid" class="spend-grid"></div><div id="giftHistory" class="gift-history"></div></section>
       <div class="card return-note"><span class="kicker">WELCOME BACK MEMORY</span><h2>쉬었다 돌아와도 실패가 아니에요.</h2><p>이틀 이상 쉬었다가 사진을 찍거나 생활 돌봄 미션을 완료하면 기억의 조각 5개를 남겨요. 연속 출석과 끊김은 표시하지 않아요.</p></div>
       <div class="card"><h2>기억의 조각 내역</h2><div id="cashEvents" class="empty">아직 기억의 조각 내역이 없어요.</div></div>
-    </section>
-
-    <section class="page shell" id="history">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">CARE HISTORY</span><h1>내가 돌본 공간</h1><p>사진 원본 없이 확정값과 완료 기록만 이 브라우저에 저장해요.</p></div></div>
-      <div class="history-toolbar"><span id="historyCount">0개의 기록</span><button id="clearHistory" class="text-button danger">전체 삭제</button></div>
-      <div id="historyList" class="history-list empty">아직 기록이 없어요.</div>
+      <section class="record-section card"><div class="history-toolbar"><div><span class="kicker">CARE RECORD</span><h2>돌봄 기록</h2><span id="historyCount">0개의 기록</span></div><button id="clearHistory" class="text-button danger">전체 삭제</button></div><div id="historyList" class="history-list empty">아직 기록이 없어요.</div></section>
     </section>
 
     <section class="page shell" id="community">
@@ -179,9 +138,9 @@
     </dialog>
   </main>
 
-  <nav class="bottom-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>◫</span>청소 미션</button><button data-view="room"><span>🌱</span>돌봄 농장</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기억</button><button data-view="history"><span>◷</span>기록</button></nav>
+  <nav class="bottom-nav five-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>▦</span>이번 주</button><button data-view="room"><span>🌱</span>텃밭</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기록·기억</button></nav>
   <div id="loading" class="loading hidden" role="status"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><small>잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/app.js?v=simple-garden1"></script>
+  <script src="/assets/app.js?v=weekly-plan1"></script>
 </body>
 </html>
