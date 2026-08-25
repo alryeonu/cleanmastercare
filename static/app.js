@@ -1154,12 +1154,12 @@ async function analyzeWeeklyPhotoAndLoadGuide(task) {
       context: { area: task.area, categories: [], focus: "unknown" },
     }, PLAN_PHOTO_CHECK_TIMEOUT_MS);
     if (analysis.manual_required || analysis.area_hint !== task.area) {
-      state.planGuide = { invalidPhoto: true, message: analysis.manual_required ? "사진 확인이 어려워요." : `사진에서 ${LABELS.area[task.area]} 단서를 확인하지 못했어요.` };
+      state.planGuide = { area: task.area, invalidPhoto: true, message: analysis.manual_required ? "사진 확인이 어려워요." : `사진에서 ${LABELS.area[task.area]} 단서를 확인하지 못했어요.` };
       renderWeeklyPlan();
       return;
     }
   } catch {
-    state.planGuide = { invalidPhoto: true, message: "사진 확인이 12초 안에 끝나지 않았어요." };
+    state.planGuide = { area: task.area, invalidPhoto: true, message: "사진 확인이 12초 안에 끝나지 않았어요." };
     renderWeeklyPlan();
     return;
   } finally {

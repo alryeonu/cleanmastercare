@@ -238,6 +238,7 @@ def test_weekly_photo_must_match_the_planned_place_before_loading_a_guide() -> N
     assert 'context: { area: task.area, categories: [], focus: "unknown" }' in script
     assert "analysis.area_hint !== task.area" in script
     assert 'area: task.area' in script
+    assert 'state.planGuide = { area: task.area, invalidPhoto: true' in script
     assert "await loadWeeklyGuide(detected)" in script
     assert '"cleaning_area"' in backend
     assert "사진에서 실제로 관찰되는 공간을 먼저 판단" in backend
