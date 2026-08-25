@@ -42,3 +42,4 @@
 - [2026-08-25 · 홈 제목 줄바꿈 정리](2026-08-25-043-home-title-line-break.md)
 - [2026-08-25 · 커뮤니티 게시판형 목록](2026-08-25-044-community-bulletin-board.md)
 - [2026-08-25 · 기억의 조각과 기억나무 보상](2026-08-25-045-memory-tree-rewards.md)
+- [2026-08-25 · 단순 텃밭과 한 화면 청소 안내](2026-08-25-046-simple-garden-and-guide.md)
