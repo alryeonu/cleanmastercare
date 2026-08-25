@@ -58,3 +58,4 @@
 - [2026-08-26 · 오늘의 자리 브랜딩, 텃밭 장식 위치와 공개 사진 첨부](2026-08-26-059-brand-garden-and-community-photos.md)
 - [2026-08-26 · 주간 청소 모드와 제품 참고 카드](2026-08-26-060-weekly-cleaning-modes-and-product-cards.md)
 - [2026-08-26 · 싱크대 주간 사진 인식 보정](2026-08-26-061-sink-weekly-photo-recognition.md)
+- [2026-08-26 · 주간 모드와 제품 추천 상태 상시 표시](2026-08-26-062-persistent-weekly-mode-and-product-state.md)

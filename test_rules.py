@@ -283,7 +283,8 @@ def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
     assert "AbortController" in script
     assert "timeoutMs = 35000" in script
     assert "loading(false);" in script
-    assert "욕실 사진을 다시 등록해주세요" in script
+    assert 'id="confirmPlannedArea"' in script
+    assert "이 사진은 ${LABELS.area[current.area]}예요 · 계속" in script
     assert 'image_detail = "low" if mode in {"cleaning_area", "bathroom_check"} else "high"' in backend
     assert "PLAN_PHOTO_CHECK_TIMEOUT_MS = 12000" in script
     assert 'duration: PLAN_PHOTO_CHECK_TIMEOUT_MS' in script
