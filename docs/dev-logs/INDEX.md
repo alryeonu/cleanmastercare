@@ -35,4 +35,3 @@
 - [2026-08-25 · 게시글 팝업과 익명 댓글](2026-08-25-033-community-thread-comments.md)
 - [2026-08-25 · 참고 정적 자산 반영](2026-08-25-034-reference-asset-adoption.md)
 - [2026-08-25 · 홈 빗자루 장식 제거](2026-08-25-035-remove-hero-broom.md)
-- [2026-08-25 · 투명 배경 비행 새](2026-08-25-036-transparent-flying-bird.md)
