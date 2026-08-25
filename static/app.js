@@ -1161,7 +1161,7 @@ function weeklyProducts(area, focus) {
 function productCards(area, focus) {
   const products = weeklyProducts(area, focus);
   if (!products.length) return "";
-  return `<section class="product-recommendations"><span class="kicker">제품 추천</span><h3>오늘의 청소에 참고해보세요</h3><p class="product-disclaimer">사진에서 살핀 공간과 흔적을 기준으로 골랐어요. 제품 라벨과 표면 제조사 안내를 먼저 확인하세요.</p><div class="product-card-grid">${products.map((product) => `<article class="product-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)} 제품 사진" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="product-image-fallback" hidden aria-hidden="true">🧼</span><div><span class="product-type">COUPANG · ${escapeHtml(product.type)}</span><h4>${escapeHtml(product.name)}</h4><p>${escapeHtml(product.purpose)}</p><aside><b>주의</b>${escapeHtml(product.caution)}</aside><a class="product-link" href="https://www.coupang.com/np/search?q=${encodeURIComponent(product.query)}" target="_blank" rel="noopener noreferrer">쿠팡에서 보기 <span aria-hidden="true">↗</span></a></div></article>`).join("")}</div></section>`;
+  return `<section class="product-recommendations"><span class="kicker">AI 제품 추천</span><h3>오늘의 청소에 참고해보세요</h3><p class="product-disclaimer">사진에서 살핀 공간과 흔적을 기준으로 골랐어요. 제품 라벨과 표면 제조사 안내를 먼저 확인하세요.</p><div class="product-card-grid">${products.map((product) => `<article class="product-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)} 제품 사진" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="product-image-fallback" hidden aria-hidden="true">🧼</span><div><span class="product-type">COUPANG · ${escapeHtml(product.type)}</span><h4>${escapeHtml(product.name)}</h4><p>${escapeHtml(product.purpose)}</p><aside><b>주의</b>${escapeHtml(product.caution)}</aside><a class="product-link" href="https://www.coupang.com/np/search?q=${encodeURIComponent(product.query)}" target="_blank" rel="noopener noreferrer">쿠팡에서 보기 <span aria-hidden="true">↗</span></a></div></article>`).join("")}</div></section>`;
 }
 function renderWeeklyPlan() {
   const setup = $("#planSetup"), tracker = $("#weeklyTracker");
@@ -1177,15 +1177,6 @@ function renderWeeklyPlan() {
       state.planAreas = state.planAreas.includes(area) ? state.planAreas.filter((item) => item !== area) : [...state.planAreas, area];
       renderWeeklyPlan();
     }));
-    $$('[data-plan-mode]').forEach((button) => button.addEventListener("click", () => {
-      state.planMode = button.dataset.planMode === "easy" ? "easy" : "normal";
-      renderWeeklyPlan();
-    }));
-    $$('[data-plan-mode]').forEach((button) => {
-      const selected = button.dataset.planMode === state.planMode;
-      button.classList.toggle("selected", selected);
-      button.setAttribute("aria-pressed", String(selected));
-    });
     return;
   }
   const current = todayPlan(plan);
@@ -1203,7 +1194,7 @@ function renderWeeklyPlan() {
   const guideIntro = guide?.mode === "local_fallback" ? "연결 상태와 관계없이 이어갈 수 있는 기본 절차예요." : "Supabase에서 조회한 검수된 절차를 순서대로 안내해요.";
   const detectedNote = guide?.detected ? `<p class="plan-detected">사진에서 <b>${LABELS.area[guideArea]}</b> 후보를 관찰해 이 공간의 절차를 안내해요.</p>` : "";
   const modeMarkup = `<div class="plan-mode-card" role="group" aria-label="청소 모드 선택"><span>청소 모드</span><button type="button" data-card-plan-mode="easy" class="${planMode === "easy" ? "selected" : ""}" aria-pressed="${planMode === "easy"}">EASY</button><button type="button" data-card-plan-mode="normal" class="${planMode === "normal" ? "selected" : ""}" aria-pressed="${planMode === "normal"}">NORMAL</button></div>`;
-  const productWaitingMarkup = planMode === "normal" ? `<section class="product-waiting"><span class="kicker">제품 추천</span><p>사진을 확인하면 청소 안내 바로 아래에 추천 카드 2개가 표시돼요.</p></section>` : "";
+  const productWaitingMarkup = planMode === "normal" ? `<section class="product-waiting"><span class="kicker">AI 제품 추천</span><p>사진을 확인하면 청소 방법 바로 아래에 제품 사진과 쿠팡 보기 버튼이 있는 추천 카드 2개가 표시돼요.</p></section>` : "";
   const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">PHOTO PLACE CHECK</span><h3>${LABELS.area[current.area]} 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 오늘 돌볼 장소 단서를 확인하기 어려워요.")} 오늘 계획인 ${LABELS.area[current.area]}이(가) 보이도록 한 장을 다시 올려주세요.</p><button id="confirmPlannedArea" class="outline" type="button">이 사진은 ${LABELS.area[current.area]}예요 · 계속</button></section>${productWaitingMarkup}` : guide ? `<section class="plan-guide ${planMode === "easy" ? "easy-guide" : ""}"><span class="kicker">${planMode === "easy" ? "EASY CARE GUIDE" : guideSource}</span><h3>${LABELS.area[guideArea]} ${planMode === "easy" ? "가벼운 청소 행동" : "청소 절차"}</h3>${detectedNote}<p>${planMode === "easy" ? "오늘은 부담 없는 한두 가지만 해도 충분해요." : `${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.`}</p><ol>${guide.steps.slice(0, planMode === "easy" ? 2 : 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>${planMode === "normal" ? productCards(guideArea, guide.focus || "unknown") : ""}` : state.planPhoto ? `<p class="plan-guide-loading">사진이 오늘의 ${LABELS.area[current.area]}인지 확인하고 있어요.</p>${productWaitingMarkup}` : productWaitingMarkup;
   const photoMarkup = (data, label) => data ? `<img src="${data}" alt="${label} 미리보기">` : "";
   $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div>${modeMarkup}<label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${(done || guide?.invalidPhoto) ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : guide?.invalidPhoto ? "사진을 다시 확인해주세요" : "개선 확인하고 텃밭 보기"}</button></div>`;

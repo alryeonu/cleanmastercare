@@ -60,3 +60,4 @@
 - [2026-08-26 · 싱크대 주간 사진 인식 보정](2026-08-26-061-sink-weekly-photo-recognition.md)
 - [2026-08-26 · 주간 모드와 제품 추천 상태 상시 표시](2026-08-26-062-persistent-weekly-mode-and-product-state.md)
 - [2026-08-26 · 주간 제품 추천 화면 단순화](2026-08-26-063-simplify-weekly-product-recommendations.md)
+- [2026-08-26 · NORMAL 제품 추천 카드 표시 수정](2026-08-26-064-fix-normal-product-cards.md)

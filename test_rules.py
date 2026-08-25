@@ -234,8 +234,7 @@ def test_weekly_plan_modes_keep_the_guide_and_gate_product_recommendations() -> 
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     catalog = (ROOT / "static" / "product-links.js").read_text(encoding="utf-8")
-    assert 'data-plan-mode="easy"' in markup
-    assert 'data-plan-mode="normal"' in markup
+    assert 'data-plan-mode=' not in markup
     assert 'data-live-plan-mode=' not in markup
     assert 'data-card-plan-mode="easy"' in script
     assert 'data-card-plan-mode="normal"' in script
@@ -243,6 +242,7 @@ def test_weekly_plan_modes_keep_the_guide_and_gate_product_recommendations() -> 
     assert 'planMode === "normal" ? productCards' in script
     assert 'id="planMaterial"' not in script
     assert "PRODUCT_CATALOG" in catalog
+    assert "globalThis.PRODUCT_CATALOG" in catalog
     assert "coupang.com/np/search?q=" in script
     assert "염소계 제품은 산성세제·식초·구연산·암모니아 제품과 절대 섞지 마세요." in catalog
 
