@@ -23,11 +23,12 @@
 - `node --check static/app.js`: 성공.
 - `node --check static/room3d.js`: 성공.
 - `node --check static/room-canvas3d.js`: 성공.
+- Vercel Production 재배포 완료 및 `app.js?v=login2` 캐시 버전 반영.
 
 ## 다음 작업과 다음 세션의 첫 행동
 
-- Vercel Production 배포 후 로그인 직후 농가가 보이는지 확인한다.
-- 다른 잠금 요소는 행동 기록 조건을 유지하는지 회귀 확인한다.
+- 기본 농가 유지 작업은 완료되었다.
+- 다른 잠금 요소는 행동 기록 조건을 유지하는지 다음 농장 UI 변경 전 회귀 확인한다.
 
 ## 다음 세션이 확인할 파일과 회귀 주의사항
 
