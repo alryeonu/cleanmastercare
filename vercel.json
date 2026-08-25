@@ -3,6 +3,7 @@
     "clean-master": {
       "root": ".",
       "entrypoint": "server.py",
+      "excludeFiles": [".env", ".env.*"],
       "buildCommand": "pip install -r requirements.txt"
     }
   },

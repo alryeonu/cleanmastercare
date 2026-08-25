@@ -1,0 +1,4 @@
+# Never upload local runtime secrets to Vercel.
+.env
+.env.*
+!.env.example
