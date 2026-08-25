@@ -15,6 +15,7 @@ const STORE = {
   farmer: "clean_master.farmer.v1",
   outfits: "clean_master.farmer_outfits.v1",
   seeds: "clean_master.farm_seeds.v1",
+  memorySeedMigration: "clean_master.memory_seed_migration.v1",
   photoPairs: "clean_master.photo_pair_hashes.v1",
   completedAreas: "clean_master.completed_areas.v1",
 };
@@ -28,7 +29,8 @@ const LABELS = {
   careType: { organize: "정리할 것", clean: "청소할 것", laundry: "세탁할 것" },
   focus: { water_scale: "물때·광물 자국", soap_scum: "비누막", grease: "기름때", dust: "먼지·부스러기", clutter: "물건 정리", laundry: "세탁할 천·의류", unknown: "직접 확인 필요" },
 };
-const CARE_STEP_POINTS = 3;
+const CARE_STEP_MEMORY = 3;
+const MEMORY_PLANT_COST = 1;
 const state = { step: 1, scenario: 0, guide: null, images: {} };
 
 const DECOR_ITEMS = [
@@ -47,17 +49,12 @@ const OUTFIT_ITEMS = [
   { id: "blue-overalls", icon: "🧢", title: "파란 멜빵 작업복", body: "밭일에 잘 어울리는 산뜻한 파란 작업복이에요.", cost: 18 },
   { id: "rainbow-coat", icon: "🌈", title: "무지개 우비", body: "비 오는 날에도 반짝이는 특별한 농부 옷이에요.", cost: 25 },
 ];
-const SEED_ITEMS = [
-  { id: "tomato", icon: "🍅", title: "방울토마토 씨앗", body: "15분 동안 천천히 돌봐요.", cost: 2 },
-  { id: "carrot", icon: "🥕", title: "당근 씨앗", body: "30분 동안 단단하게 자라요.", cost: 3 },
-  { id: "strawberry", icon: "🍓", title: "딸기 씨앗", body: "1시간 동안 달콤하게 익어요.", cost: 4 },
-  { id: "corn", icon: "🌽", title: "옥수수 씨앗", body: "3시간 동안 튼실하게 자라요.", cost: 6 },
-];
+const LEGACY_SEED_VALUES = { tomato: 2, carrot: 3, strawberry: 4, corn: 6 };
 const CROP_TYPES = {
-  tomato: { name: "방울토마토", stages: ["·", "🌱", "🌿", "🍅"], ripe: "빨간 토마토가 주렁주렁 열렸어요!", intervalMs: 300_000, intervalLabel: "5분", totalLabel: "약 15분" },
-  carrot: { name: "아삭한 당근", stages: ["·", "🌱", "🥬", "🥕"], ripe: "주황빛 당근이 흙 위로 고개를 내밀었어요!", intervalMs: 600_000, intervalLabel: "10분", totalLabel: "약 30분" },
-  strawberry: { name: "새콤한 딸기", stages: ["·", "🌱", "🌿", "🍓"], ripe: "빨간 딸기가 탐스럽게 익었어요!", intervalMs: 1_200_000, intervalLabel: "20분", totalLabel: "약 1시간" },
-  corn: { name: "고소한 옥수수", stages: ["·", "🌱", "🌿", "🌽"], ripe: "노란 옥수수가 튼실하게 여물었어요!", intervalMs: 3_600_000, intervalLabel: "1시간", totalLabel: "약 3시간" },
+  tomato: { name: "햇살나무", stages: ["·", "🌱", "🌿", "🌳"], ripe: "햇살나무가 푸르게 자랐어요!", intervalMs: 300_000, intervalLabel: "5분", totalLabel: "약 15분" },
+  carrot: { name: "응원나무", stages: ["·", "🌱", "🌿", "🌲"], ripe: "응원나무가 든든하게 자랐어요!", intervalMs: 600_000, intervalLabel: "10분", totalLabel: "약 30분" },
+  strawberry: { name: "꽃나무", stages: ["·", "🌱", "🌿", "🌸"], ripe: "꽃나무에 다정한 꽃이 피었어요!", intervalMs: 1_200_000, intervalLabel: "20분", totalLabel: "약 1시간" },
+  corn: { name: "열매나무", stages: ["·", "🌱", "🌿", "🍎"], ripe: "열매나무에 기억 열매가 맺혔어요!", intervalMs: 3_600_000, intervalLabel: "1시간", totalLabel: "약 3시간" },
 };
 let farmActionBusy = false;
 const FARMER_AVATARS = { woman: "👩‍🌾", man: "👨‍🌾" };
@@ -107,6 +104,7 @@ function openLogin() {
   if (!dialog.open) dialog.showModal();
 }
 function startSignedInApp() {
+  migrateSeedInventoryToMemory();
   const settings = read(STORE.settings, {});
   document.body.classList.toggle("easy", !!settings.easy);
   updateZoomButton(!!settings.easy);
@@ -320,7 +318,7 @@ function reward(id, amount, title) {
   addRewardEvent(key, amount, title);
   write(STORE.lastCare, today());
   updateCounters();
-  toast(`${title} · +${amount} 포인트`);
+  toast(`${title} · 기억의 조각 +${amount}개`);
   return true;
 }
 
@@ -334,13 +332,22 @@ function updateCounters() {
 function ownedDecor() { return read(STORE.decor, []); }
 function hasDecor(id) { return ownedDecor().includes(id); }
 function ownedFarmerOutfits() { return [...new Set([...FREE_FARMER_OUTFITS, ...read(STORE.outfits, [])])]; }
-function seedInventory() {
+function migrateSeedInventoryToMemory() {
+  if (read(STORE.memorySeedMigration, false)) return;
   const saved = read(STORE.seeds, {});
-  return Object.fromEntries(Object.keys(CROP_TYPES).map((id) => [id, Math.max(0, Number(saved[id]) || 0)]));
+  const restored = Object.entries(LEGACY_SEED_VALUES).reduce((sum, [id, value]) => sum + Math.max(0, Number(saved[id]) || 0) * value, 0);
+  if (restored > 0) {
+    const events = cashEvents();
+    events.unshift({ key: "memory-seed-migration", amount: restored, title: "기존 씨앗을 기억의 조각으로 전환", at: new Date().toISOString() });
+    write(STORE.events, events.slice(0, 100));
+    write(STORE.cash, Number(read(STORE.cash, 0)) + restored);
+  }
+  write(STORE.seeds, {});
+  write(STORE.memorySeedMigration, true);
 }
-function spendPoints(id, amount, title, kind) {
+function spendMemories(id, amount, title, kind) {
   const balance = Number(read(STORE.cash, 0));
-  if (balance < amount) { toast(`포인트가 ${amount - balance}P 부족해요.`); return false; }
+  if (balance < amount) { toast(`기억의 조각이 ${amount - balance}개 부족해요.`); return false; }
   const events = cashEvents();
   const key = `${today()}:spend-${kind}-${id}`;
   if (events.some((event) => event.key === key)) return false;
@@ -348,13 +355,13 @@ function spendPoints(id, amount, title, kind) {
   write(STORE.events, events.slice(0, 100));
   write(STORE.cash, balance - amount);
   updateCounters();
-  toast(`${title} · -${amount} 포인트`);
+  toast(`${title} · 기억의 조각 -${amount}개`);
   return true;
 }
 
 function purchaseDecor(item) {
   if (hasDecor(item.id)) return;
-  if (!spendPoints(item.id, item.cost, `${item.title} 꾸미기`, "decor")) return;
+  if (!spendMemories(item.id, item.cost, `${item.title} 꾸미기`, "decor")) return;
   write(STORE.decor, [...ownedDecor(), item.id]);
   renderSpendShop();
   renderRoom();
@@ -363,31 +370,15 @@ function purchaseDecor(item) {
 function selectGift(item) {
   const selected = read(STORE.gifts, []);
   if (selected.some((gift) => gift.id === item.id)) return;
-  if (!spendPoints(item.id, item.cost, `${item.title} 선택`, "gift")) return;
+  if (!spendMemories(item.id, item.cost, `${item.title} 선택`, "gift")) return;
   selected.unshift({ ...item, selectedAt: new Date().toISOString() });
   write(STORE.gifts, selected.slice(0, 20));
   renderSpendShop();
 }
 
-function buySeed(item) {
-  if (!item) return;
-  if (!hasTodayCleaningPhoto()) {
-    toast("오늘의 청소 사진을 먼저 기록하면 씨앗 상점이 열려요.");
-    showView("mission");
-    return;
-  }
-  if (!spendPoints(`${item.id}-${Date.now()}`, item.cost, `${item.title} 구입`, "seed")) return;
-  const seeds = seedInventory();
-  seeds[item.id] += 1;
-  write(STORE.seeds, seeds);
-  renderSpendShop();
-  renderFarmGrowth();
-  toast(`${item.title}을 샀어요 · 보유 ${seeds[item.id]}개`);
-}
-
 function purchaseFarmerOutfit(item) {
   if (!item || ownedFarmerOutfits().includes(item.id)) return;
-  if (!spendPoints(item.id, item.cost, `${item.title} 선물`, "outfit")) return;
+  if (!spendMemories(item.id, item.cost, `${item.title} 선물`, "outfit")) return;
   write(STORE.outfits, [...read(STORE.outfits, []), item.id]);
   write(STORE.farmer, { ...farmerStyle(), outfit: item.id });
   renderFarmerStyle();
@@ -418,10 +409,6 @@ function farmGrowth() {
       corn: normalize(saved.plots?.corn),
     },
   };
-}
-
-function hasTodayCleaningPhoto() {
-  return cashEvents().some((event) => event.key.startsWith(`${today()}:photo-mission-`));
 }
 
 function formatCropTime(milliseconds) {
@@ -464,7 +451,7 @@ function renderFarmerStyle() {
 function updateFarmerStyle(key, value) {
   const style = farmerStyle();
   if (key === "outfit" && !ownedFarmerOutfits().includes(value)) {
-    toast("포인트 상점에서 이 옷을 먼저 선물해 주세요.");
+    toast("기억의 조각 화면에서 이 옷을 먼저 선물해 주세요.");
     return;
   }
   style[key] = value;
@@ -476,7 +463,7 @@ function updateFarmerStyle(key, value) {
 function renderFarmGrowth() {
   const farm = farmGrowth();
   if (!$(".farm-grow-bed")) return;
-  const photoReady = hasTodayCleaningPhoto();
+  const memoryBalance = Number(read(STORE.cash, 0));
   const now = Date.now();
   $$(".farm-grow-bed").forEach((bed) => {
     const id = bed.dataset.plot;
@@ -495,47 +482,44 @@ function renderFarmGrowth() {
     const plot = farm.plots[button.dataset.cropPlot];
     const active = button.dataset.cropPlot === farm.active;
     button.classList.toggle("active", active);
-    button.classList.toggle("seed-locked", !plot.planted && !photoReady);
+    button.classList.toggle("seed-locked", !plot.planted && memoryBalance < MEMORY_PLANT_COST);
     button.setAttribute("aria-selected", String(active));
     button.disabled = farmActionBusy;
   });
   const activePlot = farm.plots[farm.active];
   const crop = CROP_TYPES[farm.active];
-  const seedCount = seedInventory()[farm.active];
   const remaining = Math.max(0, activePlot.readyAt - now);
   const cooling = remaining > 0;
   const messages = [
-    "씨앗이 물을 기다리고 있어요.",
+    "기억의 조각이 작은 뿌리를 내렸어요.",
     `${crop.name} 새싹이 흙을 뚫고 올라왔어요!`,
     "잎이 무성해졌어요. 한 번만 더 돌봐요.",
     crop.ripe,
   ];
   $("#cropName").textContent = crop.name;
   if (!activePlot.planted) {
-    $("#cropGrowthText").textContent = photoReady
-      ? seedCount ? "보유한 씨앗을 이 밭에 심어보세요." : "포인트 상점에서 씨앗을 사면 이 밭에 심을 수 있어요."
-      : "오늘의 청소 사진을 올리면 씨앗을 받을 수 있어요.";
+    $("#cropGrowthText").textContent = memoryBalance >= MEMORY_PLANT_COST
+      ? "기억의 조각 하나를 이 자리에 바로 심어보세요."
+      : "청소 미션을 마치면 나무가 될 기억의 조각이 생겨요.";
   } else {
     $("#cropGrowthText").textContent = messages[activePlot.stage];
   }
   $$(".crop-growth-meter i").forEach((dot, index) => dot.classList.toggle("on", index < activePlot.stage));
-  $("#cropInterval").textContent = `성장 간격 ${crop.intervalLabel} · 수확 ${crop.totalLabel}`;
-  $("#seedStock").textContent = `${seedCount}개`;
-  $("#cropQuality").textContent = activePlot.quality === "rainbow" ? "✨ 특상품" : "일반";
+  $("#cropInterval").textContent = `성장 간격 ${crop.intervalLabel} · 열매 ${crop.totalLabel}`;
+  $("#cropQuality").textContent = activePlot.quality === "rainbow" ? "✨ 무지갯빛" : "초록빛";
   $("#cropQuality").classList.toggle("premium", activePlot.quality === "rainbow");
   $("#cropTimer").textContent = !activePlot.planted
-    ? (photoReady ? "씨앗 심기 가능" : "사진 인증 필요")
+    ? (memoryBalance >= MEMORY_PLANT_COST ? "기억의 조각 심기 가능" : "기억의 조각 필요")
     : cooling
-      ? `${activePlot.stage >= 3 ? "수확" : "다음 물주기"}까지 ${formatCropTime(remaining)}`
-      : activePlot.stage >= 3 ? "지금 수확 가능" : "지금 물주기 가능";
+      ? `${activePlot.stage >= 3 ? "기억 열매" : "다음 물주기"}까지 ${formatCropTime(remaining)}`
+      : activePlot.stage >= 3 ? "지금 기억 열매 받기" : "지금 물주기 가능";
   $("#cropTimer").classList.toggle("waiting", cooling);
   $("#cropTimer").classList.toggle("ready", activePlot.planted && !cooling);
-  $("#seedPhotoCta").classList.toggle("hidden", activePlot.planted || photoReady);
-  $("#seedShopCta").classList.toggle("hidden", activePlot.planted || !photoReady || seedCount > 0);
-  $("#plantSeed").classList.toggle("hidden", activePlot.planted || !photoReady || seedCount < 1);
+  $("#plantSeed").classList.toggle("hidden", activePlot.planted);
+  $("#plantSeed").textContent = memoryBalance >= MEMORY_PLANT_COST ? "✦ 기억의 조각 심기 · 1조각" : "청소 미션으로 기억의 조각 만들기";
   $("#rainbowCrop").classList.toggle("hidden", !activePlot.planted);
   $("#rainbowCrop").disabled = farmActionBusy || activePlot.quality === "rainbow";
-  $("#rainbowCrop").textContent = activePlot.quality === "rainbow" ? "✨ 무지개 꽃물 적용 완료 · 특상품" : "🌈 무지개 꽃물 뿌리기 · 3P";
+  $("#rainbowCrop").textContent = activePlot.quality === "rainbow" ? "✨ 무지갯빛 나무로 자라는 중" : "🌈 무지개 꽃물 뿌리기 · 3조각";
   $("#waterCrop").classList.toggle("hidden", !activePlot.planted || activePlot.stage >= 3);
   $("#harvestCrop").classList.toggle("hidden", !activePlot.planted || activePlot.stage < 3);
   $("#waterCrop").disabled = farmActionBusy || cooling;
@@ -544,14 +528,14 @@ function renderFarmGrowth() {
   const rewardedToday = cashEvents().some((event) => event.key === `${today()}:farm-harvest-${farm.active}`);
   const harvestReward = activePlot.quality === "rainbow" ? 8 : 5;
   $("#harvestCrop").textContent = cooling
-    ? `🧺 수확까지 ${formatCropTime(remaining)}`
-    : rewardedToday ? "🧺 캐릭터와 직접 수확하기" : `🧺 캐릭터와 직접 수확하기 · +${harvestReward}P`;
+    ? `🧺 기억 열매까지 ${formatCropTime(remaining)}`
+    : rewardedToday ? "🧺 기억 열매 받기" : `🧺 기억 열매 받기 · +${harvestReward}조각`;
   const worker = $(".farm-worker");
   worker.dataset.plot = farm.active;
   if (!worker.classList.contains("watering") && !worker.classList.contains("rainbowing") && !worker.classList.contains("harvesting")) {
     $("#workerSpeech").textContent = !activePlot.planted
-      ? (photoReady ? "씨앗을 심을 밭을 골라줘!" : "청소 사진으로 씨앗을 받아오자!")
-      : cooling ? `${crop.name}이 천천히 자라고 있어!` : `${crop.name} 밭을 같이 돌봐볼까?`;
+      ? (memoryBalance >= MEMORY_PLANT_COST ? "기억의 조각을 심을 자리를 골라줘!" : "청소 미션으로 나무의 기억을 만들어보자!")
+      : cooling ? `${crop.name}이 천천히 자라고 있어!` : `${crop.name}를 같이 돌봐볼까?`;
   }
 }
 
@@ -571,23 +555,15 @@ function focusFarmForAction() {
 
 function plantSeed() {
   if (farmActionBusy) return;
-  if (!hasTodayCleaningPhoto()) {
-    toast("오늘의 청소 사진을 먼저 올리면 씨앗을 받을 수 있어요.");
+  if (Number(read(STORE.cash, 0)) < MEMORY_PLANT_COST) {
+    toast("청소 미션을 마치면 나무가 될 기억의 조각이 생겨요.");
     showView("mission");
     return;
   }
   const farm = farmGrowth();
   const plot = farm.plots[farm.active];
   if (plot.planted) return;
-  const seeds = seedInventory();
-  if (seeds[farm.active] < 1) {
-    toast("씨앗이 없어요. 포인트 상점에서 씨앗을 사 주세요.");
-    showView("cash");
-    setSpendTab("seed");
-    return;
-  }
-  seeds[farm.active] -= 1;
-  write(STORE.seeds, seeds);
+  if (!spendMemories(`${farm.active}-${Date.now()}`, MEMORY_PLANT_COST, `${CROP_TYPES[farm.active].name} 심기`, "tree")) return;
   plot.planted = true;
   plot.stage = 0;
   plot.readyAt = 0;
@@ -595,7 +571,7 @@ function plantSeed() {
   plot.cycleId = Date.now();
   write(STORE.farmGrowth, farm);
   renderFarmGrowth();
-  toast(`${CROP_TYPES[farm.active].name} 씨앗을 가지런히 심었어요.`);
+  toast(`기억의 조각이 ${CROP_TYPES[farm.active].name}의 씨앗이 되었어요.`);
 }
 
 function waterCrop() {
@@ -632,7 +608,7 @@ function waterCrop() {
       farmActionBusy = false;
       renderFarmGrowth();
       toast(plot.stage === 3
-        ? `${crop.name}이 익는 중이에요 · ${crop.intervalLabel} 후 수확`
+        ? `${crop.name}에 기억 열매가 맺히는 중이에요 · ${crop.intervalLabel} 후 만나요.`
         : `물을 직접 줬어요 · ${crop.intervalLabel} 후 다시 돌봐요.`);
     }, 2100);
   }, delay);
@@ -644,7 +620,7 @@ function rainbowCrop() {
   const plot = farm.plots[plotId];
   if (farmActionBusy || !plot.planted || plot.quality === "rainbow") return;
   if (!plot.cycleId) plot.cycleId = Date.now();
-  if (!spendPoints(`${plotId}-${plot.cycleId}`, 3, `${CROP_TYPES[plotId].name} 무지개 꽃물`, "rainbow")) return;
+  if (!spendMemories(`${plotId}-${plot.cycleId}`, 3, `${CROP_TYPES[plotId].name} 무지개 꽃물`, "rainbow")) return;
   plot.quality = "rainbow";
   write(STORE.farmGrowth, farm);
   farmActionBusy = true;
@@ -663,7 +639,7 @@ function rainbowCrop() {
       bed.classList.remove("rainbowing");
       farmActionBusy = false;
       renderFarmGrowth();
-      toast(`${CROP_TYPES[plotId].name}이 ✨ 특상품으로 자라요 · 수확 +8P`);
+      toast(`${CROP_TYPES[plotId].name}이 ✨ 무지갯빛으로 자라요 · 기억 열매 +8조각`);
     }, 2100);
   }, delay);
 }
@@ -673,7 +649,7 @@ function harvestCrop() {
   const plot = farm.plots[farm.active];
   if (farmActionBusy || plot.stage < 3) return;
   if (plot.readyAt > Date.now()) {
-    toast(`수확까지 ${formatCropTime(plot.readyAt - Date.now())} 남았어요.`);
+    toast(`기억 열매까지 ${formatCropTime(plot.readyAt - Date.now())} 남았어요.`);
     return;
   }
   farmActionBusy = true;
@@ -687,7 +663,7 @@ function harvestCrop() {
   setTimeout(() => {
     worker.classList.add("harvesting");
     bed.classList.add("harvesting");
-    $("#workerSpeech").textContent = "잘 익은 것부터 바구니에 담자!";
+    $("#workerSpeech").textContent = "잘 자란 기억 열매를 바구니에 담자!";
     renderFarmGrowth();
     setTimeout(() => {
       const latest = farmGrowth();
@@ -699,9 +675,9 @@ function harvestCrop() {
       latest.plots[plotId].harvests += 1;
       write(STORE.farmGrowth, latest);
       const rewardAmount = quality === "rainbow" ? 8 : 5;
-      const qualityLabel = quality === "rainbow" ? "특상품 " : "";
-      const rewarded = reward(`farm-harvest-${plotId}`, rewardAmount, `${qualityLabel}${CROP_TYPES[plotId].name} 첫 수확`);
-      if (!rewarded) toast(`${qualityLabel}${CROP_TYPES[plotId].name}을 수확했어요 · 누적 ${latest.plots[plotId].harvests}번`);
+      const qualityLabel = quality === "rainbow" ? "무지갯빛 " : "";
+      const rewarded = reward(`farm-harvest-${plotId}`, rewardAmount, `${qualityLabel}${CROP_TYPES[plotId].name} 기억 열매`);
+      if (!rewarded) toast(`${qualityLabel}${CROP_TYPES[plotId].name}의 기억 열매를 받았어요 · 누적 ${latest.plots[plotId].harvests}번`);
       renderFarmGrowth();
     }, 850);
     setTimeout(() => {
@@ -721,34 +697,26 @@ function renderSpendShop() {
   const selectedGifts = read(STORE.gifts, []);
   $$('[data-decor-count]').forEach((el) => { el.textContent = owned.length; });
   const decorGrid = $("#decorGrid");
-  const seedGrid = $("#seedGrid");
   const outfitGrid = $("#outfitGrid");
   const giftGrid = $("#giftGrid");
-  if (!decorGrid || !seedGrid || !outfitGrid || !giftGrid) return;
+  if (!decorGrid || !outfitGrid || !giftGrid) return;
   decorGrid.innerHTML = DECOR_ITEMS.map((item) => {
     const isOwned = owned.includes(item.id);
     const canBuy = balance >= item.cost && !isOwned;
-    return `<article class="spend-card ${isOwned ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isOwned ? "secondary" : "primary"}" data-buy-decor="${item.id}" ${canBuy ? "" : "disabled"}>${isOwned ? "내 농장에 있어요 ✓" : `${item.cost}P로 꾸미기`}</button></article>`;
-  }).join("");
-  const photoReady = hasTodayCleaningPhoto();
-  seedGrid.innerHTML = SEED_ITEMS.map((item) => {
-    const stock = seedInventory()[item.id];
-    const canBuy = photoReady && balance >= item.cost;
-    return `<article class="spend-card seed-card"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}<br>보유 <b>${stock}개</b></p></div><button class="primary" data-buy-seed="${item.id}" ${canBuy ? "" : "disabled"}>${photoReady ? `${item.cost}P로 씨앗 사기` : "오늘 청소 사진 필요"}</button></article>`;
+    return `<article class="spend-card ${isOwned ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isOwned ? "secondary" : "primary"}" data-buy-decor="${item.id}" ${canBuy ? "" : "disabled"}>${isOwned ? "내 농장에 있어요 ✓" : `${item.cost}조각으로 꾸미기`}</button></article>`;
   }).join("");
   outfitGrid.innerHTML = OUTFIT_ITEMS.map((item) => {
     const isOwned = ownedOutfits.includes(item.id);
     const canBuy = balance >= item.cost && !isOwned;
-    return `<article class="spend-card outfit-card ${isOwned ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isOwned ? "secondary" : "primary"}" data-buy-outfit="${item.id}" ${canBuy ? "" : "disabled"}>${isOwned ? "내 옷장에 있어요 ✓" : `${item.cost}P로 선물하기`}</button></article>`;
+    return `<article class="spend-card outfit-card ${isOwned ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isOwned ? "secondary" : "primary"}" data-buy-outfit="${item.id}" ${canBuy ? "" : "disabled"}>${isOwned ? "내 옷장에 있어요 ✓" : `${item.cost}조각으로 선물하기`}</button></article>`;
   }).join("");
   giftGrid.innerHTML = GIFT_ITEMS.map((item) => {
     const isSelected = selectedGifts.some((gift) => gift.id === item.id);
     const canBuy = balance >= item.cost && !isSelected;
-    return `<article class="spend-card gift-card ${isSelected ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isSelected ? "secondary" : "primary"}" data-select-gift="${item.id}" ${canBuy ? "" : "disabled"}>${isSelected ? "선택했어요 ✓" : `${item.cost}P로 선택`}</button></article>`;
+    return `<article class="spend-card gift-card ${isSelected ? "owned" : ""}"><div class="spend-icon">${item.icon}</div><div><h3>${item.title}</h3><p>${item.body}</p></div><button class="${isSelected ? "secondary" : "primary"}" data-select-gift="${item.id}" ${canBuy ? "" : "disabled"}>${isSelected ? "선택했어요 ✓" : `${item.cost}조각으로 선택`}</button></article>`;
   }).join("");
-  $("#giftHistory").innerHTML = selectedGifts.length ? `<h3>내가 고른 기프티콘</h3>${selectedGifts.map((gift) => `<div class="gift-history-row"><span>${gift.icon}</span><div><b>${escapeHtml(gift.title)}</b><small>${new Date(gift.selectedAt).toLocaleString("ko-KR")} 선택</small></div><strong>${gift.cost}P</strong></div>`).join("")}` : "";
+  $("#giftHistory").innerHTML = selectedGifts.length ? `<h3>내가 고른 기프티콘</h3>${selectedGifts.map((gift) => `<div class="gift-history-row"><span>${gift.icon}</span><div><b>${escapeHtml(gift.title)}</b><small>${new Date(gift.selectedAt).toLocaleString("ko-KR")} 선택</small></div><strong>${gift.cost}조각</strong></div>`).join("")}` : "";
   $$('[data-buy-decor]').forEach((button) => button.addEventListener("click", () => purchaseDecor(DECOR_ITEMS.find((item) => item.id === button.dataset.buyDecor))));
-  $$('[data-buy-seed]').forEach((button) => button.addEventListener("click", () => buySeed(SEED_ITEMS.find((item) => item.id === button.dataset.buySeed))));
   $$('[data-buy-outfit]').forEach((button) => button.addEventListener("click", () => purchaseFarmerOutfit(OUTFIT_ITEMS.find((item) => item.id === button.dataset.buyOutfit))));
   $$('[data-select-gift]').forEach((button) => button.addEventListener("click", () => selectGift(GIFT_ITEMS.find((item) => item.id === button.dataset.selectGift))));
 }
@@ -978,14 +946,14 @@ async function comparePhotos() {
     const pairHash = await photoPairHash(state.images.area, state.images.after);
     const usedPairs = read(STORE.photoPairs, []);
     if (usedPairs.includes(pairHash)) {
-      toast("같은 전후 사진 조합은 이미 확인했어요. 포인트는 한 번만 적립돼요.");
+      toast("같은 전후 사진 조합은 이미 확인했어요. 기억의 조각은 한 번만 남아요.");
       return;
     }
     const data = await post("/api/analyze", { mode: "before_after", images: [state.images.area, state.images.after], context: careContext() });
     if (data.manual_required) {
       $("#compareResult").innerHTML = `<div class="result-card unknown"><h2>전후 사진은 준비됐어요</h2><p>AI 연결 전이라 사진으로 완료 단계를 확인할 수 없어요. 체크리스트는 사진 비교가 가능할 때 열려요.</p></div>`;
     } else if (!data.same_target) {
-      $("#compareResult").innerHTML = `<div class="result-card unknown"><h2>같은 위치인지 확인하기 어려워요</h2><p>포인트는 적립하지 않았어요. 다음에는 비슷한 구도로 촬영하면 변화를 더 쉽게 확인할 수 있어요.</p></div>`;
+      $("#compareResult").innerHTML = `<div class="result-card unknown"><h2>같은 위치인지 확인하기 어려워요</h2><p>기억의 조각은 남기지 않았어요. 다음에는 비슷한 구도로 촬영하면 변화를 더 쉽게 확인할 수 있어요.</p></div>`;
     } else {
       const changes = [...(data.changes || []), ...(data.remaining_areas || [])];
       const completed = renderComparisonChecklist(data.mission_checks || {}, data.mission_evidence || {}, pairHash);
@@ -1022,8 +990,8 @@ function renderComparisonChecklist(checks, evidence, pairHash) {
   const missions = careContext().categories.map((type, index) => [type, `${index + 1}단계 · ${LABELS.careType[type]}`, descriptions[type]]);
   const done = missions.filter(([key]) => checks[key]);
   $("#comparisonChecklist").classList.remove("hidden");
-  $("#comparisonChecklist").innerHTML = `<h3>사진 비교 체크리스트</h3><p>같은 위치의 전후 사진에서 확인한 근거예요. 안내 미션 한 단계와 같은 +${CARE_STEP_POINTS}P가 체크된 단계마다 적립됩니다.</p>${missions.map(([key, title, body]) => { const notes = Array.isArray(evidence[key]) ? evidence[key] : []; const detail = checks[key] && notes.length ? notes.join(" · ") : body; return `<div class="comparison-item ${checks[key] ? "done" : ""}"><span>${checks[key] ? "✓" : "·"}</span><div><b>${title}</b><small>${escapeHtml(detail)}</small></div><em>${checks[key] ? `+${CARE_STEP_POINTS}P` : "확인 필요"}</em></div>`; }).join("")}`;
-  done.forEach(([key, title]) => reward(`photo-mission-${key}`, CARE_STEP_POINTS, `${title} 사진 확인`));
+  $("#comparisonChecklist").innerHTML = `<h3>사진 비교 체크리스트</h3><p>같은 위치의 전후 사진에서 확인한 근거예요. 체크된 단계마다 안내 미션 한 단계와 같은 기억의 조각 ${CARE_STEP_MEMORY}개가 남습니다.</p>${missions.map(([key, title, body]) => { const notes = Array.isArray(evidence[key]) ? evidence[key] : []; const detail = checks[key] && notes.length ? notes.join(" · ") : body; return `<div class="comparison-item ${checks[key] ? "done" : ""}"><span>${checks[key] ? "✓" : "·"}</span><div><b>${title}</b><small>${escapeHtml(detail)}</small></div><em>${checks[key] ? `+${CARE_STEP_MEMORY}조각` : "확인 필요"}</em></div>`; }).join("")}`;
+  done.forEach(([key, title]) => reward(`photo-mission-${key}`, CARE_STEP_MEMORY, `${title} 사진 확인`));
   return done.length;
 }
 
@@ -1053,9 +1021,9 @@ function renderRoom() {
   const copy = count === 1
     ? ["농부 친구가 농가에서 기다리고 있어요", "공간 사진을 한 장 찍으면 햇살과 첫 밭이 농장에 더해져요."]
     : count < 3
-      ? ["흙 사이로 새싹이 올라오고 있어요", "작은 행동이 햇살과 밭이 되어 농장을 천천히 채우고 있어요."]
+      ? ["기억의 조각에서 새싹이 올라오고 있어요", "청소 미션의 기억이 나무가 되어 농장을 천천히 채우고 있어요."]
       : count < 6
-        ? ["나만의 농장이 무럭무럭 자라요", "농가와 작물은 쉬는 날에도 사라지거나 시들지 않아요."]
+        ? ["나만의 기억나무가 무럭무럭 자라요", "농가와 기억나무는 쉬는 날에도 사라지거나 시들지 않아요."]
         : ["오늘의 돌봄이 풍성하게 열렸어요", "이 농장은 결과가 아니라 다시 생활을 돌본 행동으로 완성됐어요."];
   $("#roomTitle").textContent = copy[0];
   $("#roomMessage").textContent = copy[1];
@@ -1081,7 +1049,7 @@ function renderCash() {
   renderSpendShop();
   const events = cashEvents().filter((e) => e.amount !== 0);
   $("#cashEvents").className = events.length ? "" : "empty";
-  $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.title)}</b><br><small>${new Date(e.at).toLocaleString("ko-KR")}</small></div><strong class="${e.amount < 0 ? "spent" : "earned"}">${e.amount > 0 ? "+" : ""}${e.amount}P</strong></div>`).join("") : "아직 포인트 내역이 없어요.";
+  $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.title)}</b><br><small>${new Date(e.at).toLocaleString("ko-KR")}</small></div><strong class="${e.amount < 0 ? "spent" : "earned"}">${e.amount > 0 ? "+" : ""}${e.amount}조각</strong></div>`).join("") : "아직 기억의 조각 내역이 없어요.";
 }
 
 function renderHistory() {
@@ -1126,7 +1094,6 @@ $$('[data-view]').forEach((b) => b.addEventListener("click", () => showView(b.da
 function setSpendTab(tab) {
   $$('[data-spend-tab]').forEach((item) => { const active = item.dataset.spendTab === tab; item.classList.toggle("active", active); item.setAttribute("aria-selected", active); });
   $("#decorShop").classList.toggle("hidden", tab !== "decor");
-  $("#seedShop").classList.toggle("hidden", tab !== "seed");
   $("#outfitShop").classList.toggle("hidden", tab !== "outfit");
   $("#giftShop").classList.toggle("hidden", tab !== "gift");
 }
@@ -1148,12 +1115,11 @@ $("#comparePhotos").addEventListener("click", comparePhotos);
 $("#startNewMission").addEventListener("click", resetMissionForNewArea);
 $("#careArea").addEventListener("change", renderCareSummary);
 $$('input[name="careType"]').forEach((input) => input.addEventListener("change", renderCareSummary));
-$("#finishWithoutPhoto").addEventListener("click", () => { saveHistory({ completed: false, awaitingPhotoVerification: true }); toast("사진 없이 기록만 저장했어요. 포인트는 청소 후 사진 확인 뒤에 적립돼요."); showView("history"); });
+$("#finishWithoutPhoto").addEventListener("click", () => { saveHistory({ completed: false, awaitingPhotoVerification: true }); toast("사진 없이 기록만 저장했어요. 기억의 조각은 청소 후 사진 확인 뒤에 남아요."); showView("history"); });
 $("#easyToggle").addEventListener("click", () => { const active = !document.body.classList.contains("easy"); document.body.classList.toggle("easy", active); updateZoomButton(active); write(STORE.settings, { easy: active }); });
 $("#clearHistory").addEventListener("click", () => { if (confirm("저장된 분석 기록을 모두 삭제할까요?")) { write(STORE.history, []); renderHistory(); } });
 $("#completeDaily").addEventListener("click", () => { reward("daily-care", 3, "오늘의 생활 돌봄 미션"); renderDailyMission(); });
 $("#plantSeed").addEventListener("click", plantSeed);
-$("#seedShopCta").addEventListener("click", () => { showView("cash"); setSpendTab("seed"); });
 $("#waterCrop").addEventListener("click", waterCrop);
 $("#rainbowCrop").addEventListener("click", rainbowCrop);
 $("#harvestCrop").addEventListener("click", harvestCrop);

@@ -158,10 +158,28 @@ def test_removed_product_safety_flow_is_absent_from_server_contract() -> None:
 
 def test_photo_checklist_reuses_the_care_step_reward_and_daily_key() -> None:
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
-    assert "const CARE_STEP_POINTS = 3;" in source
-    assert "안내 미션 한 단계와 같은 +${CARE_STEP_POINTS}P" in source
-    assert "reward(`photo-mission-${key}`, CARE_STEP_POINTS" in source
+    assert "const CARE_STEP_MEMORY = 3;" in source
+    assert "안내 미션 한 단계와 같은 기억의 조각 ${CARE_STEP_MEMORY}개" in source
+    assert "reward(`photo-mission-${key}`, CARE_STEP_MEMORY" in source
     assert "reward(`photo-mission-${pairHash}-${key}`, 3" not in source
+
+
+def test_memory_pieces_are_planted_directly_without_a_seed_shop() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert "기억의 조각" in markup
+    assert "포인트" not in markup
+    assert "포인트" not in source
+    assert 'id="seedShop"' not in markup
+    assert 'data-spend-tab="seed"' not in markup
+    assert "const MEMORY_PLANT_COST = 1;" in source
+    assert "spendMemories(`${farm.active}-${Date.now()}`, MEMORY_PLANT_COST" in source
+    assert "function buySeed" not in source
+    assert "data-buy-seed" not in source
+    assert "const LEGACY_SEED_VALUES" in source
+    assert "기존 씨앗을 기억의 조각으로 전환" in source
+    assert 'name: "햇살나무"' in source
+    assert 'name: "꽃나무"' in source
 
 
 def test_locked_farm_items_do_not_leave_ghost_images() -> None:

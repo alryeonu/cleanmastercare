@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&amp;family=Jua&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=community-board2">
+  <link rel="stylesheet" href="/assets/styles.css?v=memory-trees1">
   <link rel="stylesheet" href="/assets/care-scope.css?v=2">
 </head>
 <body>
@@ -19,7 +19,7 @@
       <span id="apiStatus" class="status-dot">연결 확인 중</span>
       <button id="accountButton" class="account-button" type="button" aria-label="로그인 계정 설정 열기"><b id="accountNickname">로그인</b><span class="nickname-heart" aria-hidden="true">♥</span></button>
       <button id="easyToggle" class="mode-button" aria-pressed="false" aria-label="화면 확대 모드">확대 모드</button>
-      <button class="header-points" data-view="cash"><span>✦</span><b data-cash>0</b><small>P</small></button>
+      <button class="header-points" data-view="cash" aria-label="기억의 조각 보기"><span>✦</span><b data-cash>0</b><small>조각</small></button>
     </div>
   </header>
 
@@ -47,8 +47,8 @@
           <button id="completeDaily" class="soft-button">해냈어요 · +3</button>
         </article>
         <article class="cash-card">
-          <span class="kicker light">MY CARE POINTS</span>
-          <strong><span data-cash>0</span><small> 포인트</small></strong>
+          <span class="kicker light">MEMORY PIECES</span>
+          <strong><span data-cash>0</span><small> 기억의 조각</small></strong>
           <p>쉬어도 괜찮아요. 다시 돌아온 행동에는 보너스를 드려요.</p>
           <button class="link-button" data-view="cash">적립 내역 보기 →</button>
         </article>
@@ -60,7 +60,7 @@
           <article><b>01</b><span class="line-icon">◫</span><h3>사진으로 관찰</h3><p>AI가 오염과 재질의 후보만 제시해요.</p></article>
           <article><b>02</b><span class="line-icon">✓</span><h3>내가 직접 확정</h3><p>잘못 본 부분을 수정한 뒤 다음으로 가요.</p></article>
           <article><b>03</b><span class="line-icon">▷</span><h3>한 단계씩 실행</h3><p>글과 음성으로 쉬운 순서를 따라가요.</p></article>
-          <article><b>04</b><span class="line-icon">✦</span><h3>행동을 기록</h3><p>청소 전후와 작은 행동을 포인트로 남겨요.</p></article>
+          <article><b>04</b><span class="line-icon">✦</span><h3>행동을 기록</h3><p>청소 전후와 작은 행동을 기억의 조각으로 남겨요.</p></article>
         </div>
       </section>
     </section>
@@ -99,10 +99,10 @@
           <div class="card scenario-card"><div class="scenario-progress"><span id="scenarioCount">1 / 6</span><i><b id="scenarioBar"></b></i></div><span id="scenarioKicker" class="kicker">STEP 1</span><h2 id="scenarioTitle">준비하기</h2><p id="scenarioBody">환기하고 주변을 정리해요.</p><aside class="scenario-completion" aria-live="polite"><strong>이 단계 완료 기준</strong><p id="scenarioCompletionBody">작업할 범위가 눈에 보여요.</p></aside><aside id="scenarioTips" class="scenario-tips hidden" aria-live="polite"><strong>검수된 단계 팁</strong><ul id="scenarioTipList"></ul></aside><aside class="scenario-pause" aria-live="polite"><strong>멈추고 확인할 것</strong><p id="scenarioPauseBody">불편하거나 위험하다고 느껴지면 멈추고, 무리하지 않아도 괜찮아요.</p></aside><details id="scenarioSources" class="scenario-sources hidden"><summary>이 단계의 검수 출처</summary><ul id="scenarioSourceList"></ul></details><div class="button-row"><button id="speakStep" class="outline">▷ 음성으로 듣기</button><button id="prevScenario" class="secondary">이전</button><button id="nextScenario" class="primary">완료</button></div></div>
         </div>
         <section id="completion" class="completion hidden">
-          <span class="completion-mark">✓</span><h2>청소 후 사진으로 확인해요</h2><p>사진 비교에서 실제로 확인된 단계에만 포인트가 적립돼요.</p>
+          <span class="completion-mark">✓</span><h2>청소 후 사진으로 확인해요</h2><p>사진 비교에서 실제로 확인된 단계마다 기억의 조각이 남아요.</p>
           <div class="after-photo-capture"><div><span class="kicker">AFTER PHOTO</span><h3>모든 단계를 마쳤다면<br>청소 후 사진을 등록해주세요</h3><p>청소 전 사진과 비슷한 구도로 촬영하면 확인이 더 정확해져요.</p></div><label class="mini-upload" id="afterZone"><input id="afterImage" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>＋</span><strong>청소 후 사진 등록</strong><img id="afterPreview" alt="청소 후 사진 미리보기"></label></div>
           <div class="compare-grid"><div class="pair-summary"><span>BEFORE</span><img id="compareBeforePreview" alt="비교용 청소 전 사진"><strong>청소 전</strong></div><div class="pair-summary"><span>AFTER</span><img id="compareAfterPreview" alt="비교용 청소 후 사진"><strong>청소 후</strong></div></div>
-          <div class="compare-actions"><div><h3>사진으로 3개 미션 확인하기</h3><p>청소 후 사진에서 확인된 완료 흔적에는 안내 미션 한 단계와 같은 +3P를 드려요. 같은 날 같은 단계는 다른 사진 조합이어도 다시 적립되지 않아요.</p></div><button id="comparePhotos" class="secondary">사진으로 완료 확인하기</button><button id="finishWithoutPhoto" class="text-button">사진만 없이 기록하기</button></div>
+          <div class="compare-actions"><div><h3>사진으로 3개 미션 확인하기</h3><p>청소 후 사진에서 확인된 완료 흔적마다 기억의 조각 3개를 남겨요. 같은 날 같은 단계는 다른 사진 조합이어도 다시 쌓이지 않아요.</p></div><button id="comparePhotos" class="secondary">사진으로 완료 확인하기</button><button id="finishWithoutPhoto" class="text-button">사진만 없이 기록하기</button></div>
           <section id="comparisonChecklist" class="comparison-checklist hidden" aria-live="polite"></section>
           <div id="compareResult"></div>
           <button id="startNewMission" class="primary wide-mobile hidden" type="button">새로운 장소 청소 시작하기 <span>→</span></button>
@@ -111,9 +111,9 @@
     </section>
 
     <section class="page shell" id="room">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MY CARE FARM</span><h1>돌봄 농장</h1><p>작은 행동을 할수록 밭이 열리고 작물과 조경이 자라는 나만의 농장이에요.</p></div></div>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MY MEMORY FARM</span><h1>돌봄 농장</h1><p>청소 미션으로 남긴 기억의 조각을 심을수록 나무와 조경이 자라는 나만의 농장이에요.</p></div></div>
       <div class="room-layout farm-layout">
-        <section class="care-room care-farm" data-warmth="0" aria-label="돌봄 행동에 따라 밭과 작물, 농장 건물이 늘어나는 돌봄 농장">
+        <section class="care-room care-farm" data-warmth="0" aria-label="돌봄 행동에 따라 기억나무와 농장 건물이 늘어나는 돌봄 농장">
           <div class="farm-world">
             <div class="farm-sky"><span class="farm-sun">☀</span><i class="cloud cloud-one"></i><i class="cloud cloud-two"></i></div>
             <div class="farm-hills"></div>
@@ -121,23 +121,23 @@
               <div class="farm-road"></div>
               <div class="farm-item farm-house" data-room-item="cottage"><i></i><b></b><span>돌봄 농장</span></div>
               <div class="farm-item farm-barn" data-room-item="harvest"><i></i><b></b></div>
-              <div class="farm-bed-grid" aria-label="정돈된 네 개의 작물 밭">
-                <div class="farm-grow-bed plot-tomato active" data-plot="tomato" data-growth="0" aria-label="물을 주면 자라는 방울토마토 밭">
+              <div class="farm-bed-grid" aria-label="네 개의 기억나무 자리">
+                <div class="farm-grow-bed plot-tomato active" data-plot="tomato" data-growth="0" aria-label="기억의 조각으로 자라는 햇살나무">
                   <span class="crop-sprite crop-one">·</span><span class="crop-sprite crop-two">·</span><span class="crop-sprite crop-three">·</span><span class="crop-sprite crop-four">·</span>
                   <div class="rainbow-sparkles" aria-hidden="true">✦ ✧ ✦</div>
                   <div class="water-splash" aria-hidden="true">💧</div>
                 </div>
-                <div class="farm-grow-bed plot-carrot" data-plot="carrot" data-growth="0" aria-label="물을 주면 자라는 당근 밭">
+                <div class="farm-grow-bed plot-carrot" data-plot="carrot" data-growth="0" aria-label="기억의 조각으로 자라는 응원나무">
                   <span class="crop-sprite crop-one">·</span><span class="crop-sprite crop-two">·</span><span class="crop-sprite crop-three">·</span><span class="crop-sprite crop-four">·</span>
                   <div class="rainbow-sparkles" aria-hidden="true">✦ ✧ ✦</div>
                   <div class="water-splash" aria-hidden="true">💧</div>
                 </div>
-                <div class="farm-grow-bed plot-strawberry" data-plot="strawberry" data-growth="0" aria-label="물을 주면 자라는 딸기 밭">
+                <div class="farm-grow-bed plot-strawberry" data-plot="strawberry" data-growth="0" aria-label="기억의 조각으로 자라는 꽃나무">
                   <span class="crop-sprite crop-one">·</span><span class="crop-sprite crop-two">·</span><span class="crop-sprite crop-three">·</span><span class="crop-sprite crop-four">·</span>
                   <div class="rainbow-sparkles" aria-hidden="true">✦ ✧ ✦</div>
                   <div class="water-splash" aria-hidden="true">💧</div>
                 </div>
-                <div class="farm-grow-bed plot-corn" data-plot="corn" data-growth="0" aria-label="물을 주면 자라는 옥수수 밭">
+                <div class="farm-grow-bed plot-corn" data-plot="corn" data-growth="0" aria-label="기억의 조각으로 자라는 열매나무">
                   <span class="crop-sprite crop-one">·</span><span class="crop-sprite crop-two">·</span><span class="crop-sprite crop-three">·</span><span class="crop-sprite crop-four">·</span>
                   <div class="rainbow-sparkles" aria-hidden="true">✦ ✧ ✦</div>
                   <div class="water-splash" aria-hidden="true">💧</div>
@@ -157,19 +157,17 @@
         <aside class="room-panel card farm-panel">
           <span class="kicker">FARM GROWTH</span><h2 id="roomTitle">첫 밭을 기다리고 있어요</h2><p id="roomMessage">공간 사진을 한 장 찍으면 농장에 햇살이 내려요.</p>
           <div class="room-progress"><i><b id="roomProgressBar"></b></i><strong><span id="roomProgressCount">0</span> / 6</strong></div>
-          <section class="crop-care-card" aria-label="농작물 키우기">
-            <div class="plot-tabs" role="tablist" aria-label="키울 밭 선택"><button class="active" data-crop-plot="tomato" role="tab" aria-selected="true">🍅 토마토</button><button data-crop-plot="carrot" role="tab" aria-selected="false">🥕 당근</button><button data-crop-plot="strawberry" role="tab" aria-selected="false">🍓 딸기</button><button data-crop-plot="corn" role="tab" aria-selected="false">🌽 옥수수</button></div>
-            <div class="crop-care-top"><span class="crop-badge">선택한 작물</span><strong id="cropName">방울토마토</strong><small id="cropGrowthText">씨앗이 물을 기다리고 있어요.</small></div>
-            <div class="crop-growth-meter" aria-label="작물 성장 단계"><i></i><i></i><i></i></div>
-            <div class="crop-timer-row"><span id="cropInterval">성장 간격 5분 · 수확 약 15분</span><strong id="cropTimer" aria-live="polite">씨앗이 필요해요</strong></div>
-            <div class="crop-seed-row"><span>보유 씨앗</span><strong id="seedStock">0개</strong></div>
-            <div class="crop-quality-row"><span>예상 품질</span><strong id="cropQuality">일반</strong></div>
-            <button id="seedPhotoCta" class="secondary crop-action seed-photo" data-view="mission">📷 오늘의 청소 사진으로 씨앗 받기</button>
-            <button id="seedShopCta" class="secondary crop-action seed-shop hidden">🌱 포인트로 씨앗 사기</button>
-            <button id="plantSeed" class="primary crop-action plant-seed hidden">🌰 씨앗 심기</button>
-            <button id="rainbowCrop" class="secondary crop-action rainbow-care hidden">🌈 무지개 꽃물 뿌리기 · 3P</button>
+          <section class="crop-care-card" aria-label="기억나무 키우기">
+            <div class="plot-tabs" role="tablist" aria-label="키울 기억나무 선택"><button class="active" data-crop-plot="tomato" role="tab" aria-selected="true">☀️ 햇살나무</button><button data-crop-plot="carrot" role="tab" aria-selected="false">💚 응원나무</button><button data-crop-plot="strawberry" role="tab" aria-selected="false">🌸 꽃나무</button><button data-crop-plot="corn" role="tab" aria-selected="false">🍎 열매나무</button></div>
+            <div class="crop-care-top"><span class="crop-badge">선택한 나무</span><strong id="cropName">햇살나무</strong><small id="cropGrowthText">청소 미션의 기억을 기다리고 있어요.</small></div>
+            <div class="crop-growth-meter" aria-label="기억나무 성장 단계"><i></i><i></i><i></i></div>
+            <div class="crop-timer-row"><span id="cropInterval">성장 간격 5분 · 열매 약 15분</span><strong id="cropTimer" aria-live="polite">기억의 조각이 필요해요</strong></div>
+            <div class="crop-memory-row"><span>심을 수 있는 기억</span><strong><span data-cash>0</span>조각</strong></div>
+            <div class="crop-quality-row"><span>나무의 빛깔</span><strong id="cropQuality">초록빛</strong></div>
+            <button id="plantSeed" class="primary crop-action plant-seed">✦ 기억의 조각 심기 · 1조각</button>
+            <button id="rainbowCrop" class="secondary crop-action rainbow-care hidden">🌈 무지개 꽃물 뿌리기 · 3조각</button>
             <button id="waterCrop" class="primary crop-action">💧 물 주기</button>
-            <button id="harvestCrop" class="primary crop-action harvest hidden">🧺 수확하기 · +5P</button>
+            <button id="harvestCrop" class="primary crop-action harvest hidden">🧺 기억 열매 받기 · +5조각</button>
           </section>
           <details class="farmer-customizer">
             <summary>🧑‍🌾 농부 캐릭터 꾸미기</summary>
@@ -178,29 +176,28 @@
           </details>
           <div class="unlock-list">
             <div data-room-status="sunlight"><span>☀</span><p><b>따뜻한 햇살</b><small>공간 사진 촬영</small></p><em>기다리는 중</em></div>
-            <div data-room-status="field"><span>▦</span><p><b>첫 번째 텃밭</b><small>청소 2단계 실행</small></p><em>기다리는 중</em></div>
-            <div data-room-status="crop"><span>♧</span><p><b>초록 작물</b><small>청소 4단계 실행</small></p><em>기다리는 중</em></div>
+            <div data-room-status="field"><span>▦</span><p><b>첫 기억나무 자리</b><small>청소 2단계 실행</small></p><em>기다리는 중</em></div>
+            <div data-room-status="crop"><span>♧</span><p><b>자라는 기억나무</b><small>청소 4단계 실행</small></p><em>기다리는 중</em></div>
             <div data-room-status="cottage"><span>⌂</span><p><b>작은 농가</b><small>오늘의 작은 미션</small></p><em>기다리는 중</em></div>
-            <div data-room-status="harvest"><span>▤</span><p><b>수확 창고</b><small>욕실 미션 완료</small></p><em>기다리는 중</em></div>
+            <div data-room-status="harvest"><span>▤</span><p><b>기억 열매 바구니</b><small>청소 미션 완료</small></p><em>기다리는 중</em></div>
             <div data-room-status="orchard"><span>♣</span><p><b>꽃피는 과수원</b><small>청소 전후 기록</small></p><em>기다리는 중</em></div>
           </div>
           <button class="primary room-cta" data-view="mission">청소 미션으로 농장 키우기</button>
         </aside>
       </div>
-      <div class="room-promise farm-promise"><span>🌱</span><div><b>한 번 자란 농장은 시들지 않아요.</b><p>며칠 쉬어도 열린 밭과 획득한 조경은 그대로예요. 농부 친구는 언제든 돌아오기를 기다려요.</p></div></div>
+      <div class="room-promise farm-promise"><span>🌱</span><div><b>한 번 자란 기억나무는 시들지 않아요.</b><p>며칠 쉬어도 심은 나무와 획득한 조경은 그대로예요. 농부 친구는 언제든 돌아오기를 기다려요.</p></div></div>
     </section>
 
     <section class="page shell" id="cash">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">CARE POINTS</span><h1>행동이 쌓인 포인트</h1><p>돌봄 포인트는 서비스 안에서 사용하는 기록이며 현금이나 결제수단이 아니에요.</p></div></div>
-      <div class="cash-hero"><div><span>현재 잔액</span><strong><span data-cash>0</span> 포인트</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
-      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY LITTLE FARM</span><h2>모은 포인트로 작은 선물을 골라요</h2><p>나만의 농장을 꾸미고, 오늘 나에게 주고 싶은 기프티콘을 선택해요.</p><div class="collection-pill">내 조경 <b data-decor-count>0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🌱</div><div><span>나의 돌봄 농장</span><button class="link-button" data-view="room">농장 둘러보기 →</button></div></div><div class="spend-balance"><span>사용 가능</span><strong><span data-cash>0</span>P</strong></div></section>
-      <div class="spend-tabs" role="tablist" aria-label="포인트 사용처"><button class="active" data-spend-tab="decor" role="tab" aria-selected="true">농장 꾸미기</button><button data-spend-tab="seed" role="tab" aria-selected="false">씨앗 상점</button><button data-spend-tab="outfit" role="tab" aria-selected="false">농부 옷</button><button data-spend-tab="gift" role="tab" aria-selected="false">기프티콘 선택</button></div>
-      <section id="decorShop" class="spend-panel" aria-label="농장 꾸미기 아이템"><div class="spend-panel-head"><div><span class="kicker">FARM DECOR SHOP</span><h2>농장에 조경을 더해 볼까요?</h2></div><button class="secondary" data-view="room">내 농장 보기</button></div><p class="spend-note">한 번 고른 조경은 포인트를 다시 쓰지 않아도 농장에 남아요.</p><div id="decorGrid" class="spend-grid"></div></section>
-      <section id="seedShop" class="spend-panel hidden" aria-label="씨앗 상점"><div class="spend-panel-head"><div><span class="kicker">SEED MARKET</span><h2>오늘 돌본 농장에 씨앗을 골라요</h2></div><button class="secondary" data-view="room">밭에 심으러 가기</button></div><p class="spend-note">오늘의 청소 사진을 기록하면 씨앗을 살 수 있어요. 구입한 씨앗은 심을 때 하나씩 사용돼요.</p><div id="seedGrid" class="spend-grid"></div></section>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MEMORY PIECES</span><h1>행동이 남긴 기억의 조각</h1><p>청소를 시작하고 한 단계를 마주한 순간이 조각으로 남아 기억나무의 씨앗이 돼요.</p></div></div>
+      <div class="cash-hero"><div><span>간직한 조각</span><strong><span data-cash>0</span>개</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
+      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY MEMORY FARM</span><h2>기억의 조각을 농장에 남겨요</h2><p>조각을 바로 심어 기억나무를 키우거나, 농장과 농부 친구를 꾸밀 수 있어요.</p><div class="collection-pill">내 조경 <b data-decor-count>0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🌳</div><div><span>나의 돌봄 농장</span><button class="link-button" data-view="room">기억나무 심기 →</button></div></div><div class="spend-balance"><span>간직한 기억</span><strong><span data-cash>0</span>조각</strong></div></section>
+      <div class="spend-tabs" role="tablist" aria-label="기억의 조각 사용처"><button class="active" data-spend-tab="decor" role="tab" aria-selected="true">농장 꾸미기</button><button data-spend-tab="outfit" role="tab" aria-selected="false">농부 옷</button><button data-spend-tab="gift" role="tab" aria-selected="false">기프티콘 선택</button></div>
+      <section id="decorShop" class="spend-panel" aria-label="농장 꾸미기 아이템"><div class="spend-panel-head"><div><span class="kicker">FARM DECOR SHOP</span><h2>농장에 조경을 더해 볼까요?</h2></div><button class="secondary" data-view="room">내 농장 보기</button></div><p class="spend-note">한 번 고른 조경은 기억의 조각을 다시 쓰지 않아도 농장에 남아요.</p><div id="decorGrid" class="spend-grid"></div></section>
       <section id="outfitShop" class="spend-panel hidden" aria-label="농부 옷 상점"><div class="spend-panel-head"><div><span class="kicker">FARMER CLOSET</span><h2>농부 친구에게 새 옷을 선물해요</h2></div><button class="secondary" data-view="room">입혀 보러 가기</button></div><p class="spend-note">구입한 옷은 농장 속 캐릭터 꾸미기 옷장에 영구 보관돼요.</p><div id="outfitGrid" class="spend-grid"></div></section>
       <section id="giftShop" class="spend-panel hidden" aria-label="기프티콘 선택"><div class="spend-panel-head"><div><span class="kicker">A LITTLE TREAT</span><h2>오늘의 나에게 작은 선물</h2></div></div><div id="giftGrid" class="spend-grid"></div><div id="giftHistory" class="gift-history"></div></section>
-      <div class="card return-note"><span class="kicker">WELCOME BACK BONUS</span><h2>쉬었다 돌아와도 실패가 아니에요.</h2><p>이틀 이상 쉬었다가 사진을 찍거나 생활 돌봄 미션을 완료하면 5포인트를 드려요. 연속 출석과 끊김은 표시하지 않아요.</p></div>
-      <div class="card"><h2>포인트 내역</h2><div id="cashEvents" class="empty">아직 포인트 내역이 없어요.</div></div>
+      <div class="card return-note"><span class="kicker">WELCOME BACK MEMORY</span><h2>쉬었다 돌아와도 실패가 아니에요.</h2><p>이틀 이상 쉬었다가 사진을 찍거나 생활 돌봄 미션을 완료하면 기억의 조각 5개를 남겨요. 연속 출석과 끊김은 표시하지 않아요.</p></div>
+      <div class="card"><h2>기억의 조각 내역</h2><div id="cashEvents" class="empty">아직 기억의 조각 내역이 없어요.</div></div>
     </section>
 
     <section class="page shell" id="history">
@@ -228,7 +225,7 @@
         <span class="login-mark" aria-hidden="true">💚</span>
         <span class="kicker">MY CARE FARM</span>
         <h2 id="loginTitle">내 돌봄 기록을 이어갈까요?</h2>
-        <p>닉네임과 비밀번호 4자로 이 기기에서 포인트와 농장 상태를 나눠서 저장해요.</p>
+        <p>닉네임과 비밀번호 4자로 이 기기에서 기억의 조각과 농장 상태를 나눠서 저장해요.</p>
         <label>닉네임<input id="loginNickname" maxlength="12" minlength="2" autocomplete="username" placeholder="예: 연우" required></label>
         <label>비밀번호 4자<input id="loginPassword" type="password" maxlength="4" minlength="4" autocomplete="current-password" inputmode="text" placeholder="정확히 4자 입력" required></label>
         <p id="loginError" class="login-error" role="alert" aria-live="polite"></p>
@@ -238,9 +235,9 @@
     </dialog>
   </main>
 
-  <nav class="bottom-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>◫</span>청소 미션</button><button data-view="room"><span>🌱</span>돌봄 농장</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>포인트</button><button data-view="history"><span>◷</span>기록</button></nav>
+  <nav class="bottom-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>◫</span>청소 미션</button><button data-view="room"><span>🌱</span>돌봄 농장</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기억</button><button data-view="history"><span>◷</span>기록</button></nav>
   <div id="loading" class="loading hidden" role="status"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><small>잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/app.js?v=community-board1"></script>
+  <script src="/assets/app.js?v=memory-trees1"></script>
 </body>
 </html>
