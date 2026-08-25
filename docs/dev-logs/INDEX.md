@@ -57,3 +57,4 @@
 - [2026-08-26 · 텃밭 자동 장식과 기록 화면 단순화](2026-08-26-058-garden-decor-instead-of-shop.md)
 - [2026-08-26 · 오늘의 자리 브랜딩, 텃밭 장식 위치와 공개 사진 첨부](2026-08-26-059-brand-garden-and-community-photos.md)
 - [2026-08-26 · 주간 청소 모드와 제품 참고 카드](2026-08-26-060-weekly-cleaning-modes-and-product-cards.md)
+- [2026-08-26 · 싱크대 주간 사진 인식 보정](2026-08-26-061-sink-weekly-photo-recognition.md)

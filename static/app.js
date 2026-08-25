@@ -1121,6 +1121,10 @@ const PLAN_MATERIALS = {
   wood: "원목·목재",
   fabric: "패브릭·천",
 };
+const WEEKLY_AREA_ALIASES = {
+  sink: ["sink", "kitchen"],
+  kitchen: ["kitchen", "sink"],
+};
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
 function mondayKey(date = new Date()) {
@@ -1147,6 +1151,9 @@ function activeWeeklyPlan() {
 }
 function todayPlan(plan = activeWeeklyPlan()) { return plan?.tasks.find((task) => task.date === today()) || plan?.tasks[0]; }
 function planRecord(task) { return read(STORE.history, []).find((record) => record.id === `weekly-${task.date}`); }
+function weeklyAreaMatches(plannedArea, observedArea) {
+  return (WEEKLY_AREA_ALIASES[plannedArea] || [plannedArea]).includes(observedArea);
+}
 function weeklyProducts(area, focus, material) {
   const catalog = globalThis.PRODUCT_CATALOG || {};
   const byArea = material === "fabric" ? catalog.fabric : catalog[area === "kitchen" ? "sink" : area];
@@ -1225,7 +1232,7 @@ async function analyzeWeeklyPhotoAndLoadGuide(task) {
       images: [state.planPhoto],
       context: { area: task.area, categories: [], focus: "unknown" },
     }, PLAN_PHOTO_CHECK_TIMEOUT_MS);
-    if (analysis.manual_required || analysis.area_hint !== task.area) {
+    if (analysis.manual_required || !weeklyAreaMatches(task.area, analysis.area_hint)) {
       state.planGuide = { area: task.area, invalidPhoto: true, message: analysis.manual_required ? "사진 확인이 어려워요." : `사진에서 ${LABELS.area[task.area]} 단서를 확인하지 못했어요.` };
       renderWeeklyPlan();
       return;
