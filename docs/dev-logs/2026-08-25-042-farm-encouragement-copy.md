@@ -19,10 +19,11 @@
 - `node --check static/app.js`: 성공.
 - `node --check static/room3d.js`: 성공.
 - `node --check static/room-canvas3d.js`: 성공.
+- Vercel Production 배포 완료.
 
 ## 다음 작업과 다음 세션의 첫 행동
 
-- Vercel Production 배포 후 농장 하단 문구를 확인한다.
+- 응원 문구 변경 작업은 완료되었다.
 
 ## 다음 세션이 확인할 파일과 회귀 주의사항
 
