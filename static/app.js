@@ -19,6 +19,7 @@ const STORE = {
   photoPairs: "clean_master.photo_pair_hashes.v1",
   completedAreas: "clean_master.completed_areas.v1",
   weeklyPlan: "clean_master.weekly_plan.v1",
+  gardenCrop: "clean_master.garden_crop.v1",
 };
 const AUTH = {
   accounts: "clean_master.local_accounts.v1",
@@ -32,7 +33,7 @@ const LABELS = {
 };
 const CARE_STEP_MEMORY = 3;
 const MEMORY_PLANT_COST = 1;
-const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null };
+const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null, planAfterPhoto: null, planGuide: null };
 
 const DECOR_ITEMS = [
   { id: "scarecrow", icon: "🌾", title: "밀짚 허수아비", body: "사람 캐릭터와 헷갈리지 않는 볏짚 표식이에요.", cost: 15 },
@@ -982,6 +983,16 @@ const GARDEN_STAGES = [
   { label: "큰 나무", icon: "🌲", title: "큰 나무가 자랐어요", message: "계속 이어온 돌봄이 텃밭을 든든하게 채워요." },
   { label: "과수원", icon: "🍎", title: "나만의 과수원이 되었어요", message: "청소 미션으로 남긴 기억이 풍성한 과수원이 되었어요." },
 ];
+const GARDEN_CROPS = [
+  { name: "토마토", sprout: "🌱", tree: "🍅" },
+  { name: "딸기", sprout: "🌱", tree: "🍓" },
+  { name: "바질", sprout: "🌱", tree: "🌿" },
+  { name: "당근", sprout: "🌱", tree: "🥕" },
+];
+function plantRandomGardenSeed() {
+  if (read(STORE.gardenCrop, null)) return;
+  write(STORE.gardenCrop, GARDEN_CROPS[Math.floor(Math.random() * GARDEN_CROPS.length)]);
+}
 
 function completedGardenMissions() {
   return read(STORE.history, []).filter((record) => record.completed && (record.beforeAfter || record.plannedCompleted)).length;
@@ -991,9 +1002,10 @@ function renderRoom() {
   if (!$("#gardenStageLabel")) return;
   const progress = Math.min(5, completedGardenMissions());
   const stage = GARDEN_STAGES[progress];
+  const crop = read(STORE.gardenCrop, null);
   $(".simple-garden").dataset.gardenStage = String(progress);
-  $("#gardenStageIcon").textContent = stage.icon;
-  $("#gardenStageLabel").textContent = stage.label;
+  $("#gardenStageIcon").textContent = crop && progress > 0 ? (progress < 3 ? crop.sprout : crop.tree) : stage.icon;
+  $("#gardenStageLabel").textContent = crop && progress > 0 ? `${crop.name} ${stage.label}` : stage.label;
   $("#gardenStageHint").textContent = progress === 5 ? "이 텃밭은 계속 이어온 돌봄의 기억으로 가득해요." : "다음 청소 미션을 마치면 다음 모습으로 자라요.";
   $("#roomTitle").textContent = stage.title;
   $("#roomMessage").textContent = stage.message;
@@ -1076,21 +1088,45 @@ function renderWeeklyPlan() {
     return `<article class="week-day ${active ? "today" : ""} ${done ? "done" : ""}"><span>${task.day}</span><b>${LABELS.area[task.area]}</b><small>${done ? "기록 완료 ✓" : task.task}</small></article>`;
   }).join("");
   const done = !!planRecord(current)?.plannedCompleted;
-  $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>청소 전 사진 한 장만 남기면 오늘의 기록이 돼요. 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>${state.planPhoto ? "사진 바꾸기" : "＋ 사진 남기기"}</span></label><button id="completePlanTask" class="primary" ${done ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : "오늘의 돌봄 기록하기 · +3조각"}</button>`;
-  $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
+  const guide = state.planGuide?.area === current.area ? state.planGuide : null;
+  const guideMarkup = guide ? `<section class="plan-guide"><span class="kicker">SUPABASE CLEANING GUIDE</span><h3>${LABELS.area[current.area]} 간단 청소 방법</h3><ol>${guide.steps.slice(0, 4).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">검수된 청소 방법을 불러오는 중이에요.</p>` : "";
+  $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${done ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : "개선 확인하고 새싹 심기"}</button></div>`;
+  $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); state.planGuide = null; renderWeeklyPlan(); await loadWeeklyGuide(current); } catch (error) { toast(error.message); } });
+  $("#planAfterPhotoInput").addEventListener("change", async (event) => { try { state.planAfterPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
   $("#completePlanTask").addEventListener("click", () => completePlanTask(current));
 }
-function completePlanTask(task) {
-  if (!state.planPhoto) return toast("오늘 돌볼 곳의 청소 전 사진을 한 장 남겨주세요.");
+async function loadWeeklyGuide(task) {
+  try {
+    const guide = await post("/api/cleaning-guide", { locale: "ko-KR", area_hint: task.area, visible_categories: ["clean"], cleaning_focus: "unknown", user_confirmed: true, observations: [] });
+    state.planGuide = { area: task.area, steps: guide.steps || [] };
+  } catch {
+    state.planGuide = { area: task.area, steps: [
+      { instruction: "주변을 비우기", detail: "오늘 정한 작은 범위만 보이게 해요." },
+      { instruction: "눈에 보이는 것부터 닦기", detail: "부드러운 천으로 한 방향씩 가볍게 닦아요." },
+      { instruction: "물기와 도구 정리", detail: "남은 물기를 걷고 사용한 도구를 제자리에 둬요." },
+    ] };
+  }
+  renderWeeklyPlan();
+}
+async function completePlanTask(task) {
+  if (!state.planPhoto || !state.planAfterPhoto) return toast("비포와 애프터 사진을 각각 한 장씩 남겨주세요.");
+  let improved = false;
+  loading(true, "전후 사진에서 보이는 변화를 확인하고 있어요");
+  try {
+    const data = await post("/api/analyze", { mode: "before_after", images: [state.planPhoto, state.planAfterPhoto], context: { area: task.area, visible_categories: ["clean"] } });
+    improved = !data.manual_required && data.same_target === true && Object.values(data.mission_checks || {}).some(Boolean);
+  } catch { toast("사진 비교가 어려워 기록만 남겼어요."); }
+  finally { loading(false); }
   const list = read(STORE.history, []);
-  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: task.area, categories: ["clean"], guideType: "weekly_tracker", completed: true, beforeAfter: false, plannedCompleted: true, photoRecorded: true };
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: task.area, categories: ["clean"], guideType: "weekly_tracker", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, improved };
   const index = list.findIndex((item) => item.id === record.id);
   if (index >= 0) list[index] = record; else list.unshift(record);
   write(STORE.history, list.slice(0, 50));
   reward(`weekly-plan-${task.date}`, 3, `${LABELS.area[task.area]} 주간 돌봄 기록`);
-  state.planPhoto = null;
+  if (improved) plantRandomGardenSeed();
+  state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null;
   renderWeeklyPlan(); renderRoom(); renderCash();
-  toast("오늘의 작은 돌봄을 기록했어요. 텃밭도 한 단계 자라요.");
+  toast(improved ? "개선된 모습을 확인했어요. 랜덤 작물 새싹이 텃밭에 심어졌어요." : "오늘의 돌봄을 기록했어요. 다음에도 비슷한 구도로 남겨보세요.");
 }
 
 function renderCash() {
