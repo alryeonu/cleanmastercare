@@ -772,6 +772,16 @@ function saveHistory(extra = {}) {
   write(STORE.history, list.slice(0, 50));
 }
 
+async function afterPhotoThumbnail(source) {
+  const image = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = source; });
+  const scale = Math.min(1, 280 / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", .62);
+}
+
 async function imageData(file) {
   if (!file) throw new Error("사진을 선택해주세요.");
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("JPG, PNG, WEBP 사진만 사용할 수 있어요.");
@@ -970,7 +980,8 @@ async function comparePhotos() {
       const completed = renderComparisonChecklist(data.mission_checks || {}, data.mission_evidence || {}, pairHash);
       $("#compareResult").innerHTML = `<div class="result-card allowed"><h2>전후 사진에서 보이는 변화를 정리했어요</h2><p>${completed ? `${completed}개 미션의 완료 흔적을 확인했어요.` : "완료로 확실히 볼 수 있는 단계는 아직 없어요."}</p>${changes.length ? `<ul>${changes.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>` : ""}</div>`;
       write(STORE.photoPairs, [...usedPairs, pairHash].slice(-100));
-      saveHistory({ beforeAfter: true, completed: completed > 0, photoMissionCount: completed });
+      const afterThumbnail = await afterPhotoThumbnail(state.images.after);
+      saveHistory({ beforeAfter: true, completed: completed > 0, photoMissionCount: completed, afterThumbnail });
       const enoughProgressToComplete = completed >= 1;
       if (enoughProgressToComplete) {
         const areas = completedAreas();
@@ -1230,7 +1241,8 @@ function renderHistory() {
     const mode = x.modeLabel || (x.guideType === "weekly_tracker" ? "주간 돌봄" : "일반 모드");
     const encouragement = x.encouragement || "오늘 공간을 위한 시간을 남겼어요. 천천히 이어가도 괜찮아요.";
     const item = (x.categories || []).map((type) => LABELS.careType[type]).join(" · ") || "집안 돌봄";
-    return `<article class="history-record-card"><div class="history-record-top"><span>${new Date(x.date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })}</span><em>${escapeHtml(mode)}</em></div><h3>${escapeHtml(LABELS.area[x.area] || "돌본 공간")}</h3><p>청소 항목 · ${escapeHtml(item)}</p><blockquote>${escapeHtml(encouragement)}</blockquote></article>`;
+    const thumbnail = typeof x.afterThumbnail === "string" && x.afterThumbnail.startsWith("data:image/jpeg;base64,") ? `<img class="history-after-thumbnail" src="${x.afterThumbnail}" alt="${escapeHtml(LABELS.area[x.area] || "돌봄")} 청소 후 사진">` : "";
+    return `<article class="history-record-card ${thumbnail ? "has-thumbnail" : ""}">${thumbnail}<div class="history-record-content"><div class="history-record-top"><span>${new Date(x.date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })}</span><em>${escapeHtml(mode)}</em></div><h3>${escapeHtml(LABELS.area[x.area] || "돌본 공간")}</h3><p>청소 항목 · ${escapeHtml(item)}</p><blockquote>${escapeHtml(encouragement)}</blockquote></div></article>`;
   }).join("") : "아직 기록이 없어요.";
 }
 

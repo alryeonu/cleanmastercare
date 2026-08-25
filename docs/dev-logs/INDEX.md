@@ -52,3 +52,4 @@
 - [2026-08-26 · 빠른 계획 장소 사진 확인과 진행률](2026-08-26-053-fast-place-check-progress.md)
 - [2026-08-26 · 사진 장소 재등록 안내 렌더링 수정](2026-08-26-054-photo-place-retry-render.md)
 - [2026-08-26 · 돌봄 기록 카드 보강](2026-08-26-055-care-history-cards.md)
+- [2026-08-26 · 애프터 사진 기록 썸네일](2026-08-26-056-after-photo-history-thumbnails.md)

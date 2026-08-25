@@ -230,13 +230,15 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert "coupang" not in script.lower()
 
 
-def test_care_history_shows_date_item_mode_and_encouragement_without_storing_photos() -> None:
+def test_care_history_shows_date_item_mode_encouragement_and_after_thumbnail() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'modeLabel: "일반 모드"' in script
     assert 'modeLabel: "주간 돌봄"' in script
     assert "history-record-card" in script
     assert "encouragement" in script
-    assert "afterPhoto" not in script[script.index("const record = { id: `weekly-"):script.index("write(STORE.history", script.index("const record = { id: `weekly-"))]
+    assert "afterPhotoThumbnail" in script
+    assert "afterThumbnail" in script
+    assert "history-after-thumbnail" in script
 
 
 def test_weekly_photo_must_match_the_planned_place_before_loading_a_guide() -> None:
