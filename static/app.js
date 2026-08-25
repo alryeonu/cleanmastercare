@@ -761,6 +761,8 @@ function saveHistory(extra = {}) {
     area: $("#careArea").value,
     categories: careContext().categories,
     guideType: "home_care",
+    modeLabel: "일반 모드",
+    encouragement: "오늘 공간을 마주하고 기록을 남긴 것만으로도 충분해요.",
     completed: true,
     beforeAfter: false,
     ...extra,
@@ -1191,7 +1193,7 @@ async function completePlanTask(task) {
   } catch { toast("사진 비교가 어려워 기록만 남겼어요."); }
   finally { loading(false); }
   const list = read(STORE.history, []);
-  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, improved };
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: "주간 돌봄", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, improved };
   const index = list.findIndex((item) => item.id === record.id);
   if (index >= 0) list[index] = record; else list.unshift(record);
   write(STORE.history, list.slice(0, 50));
@@ -1224,7 +1226,12 @@ function renderHistory() {
   const list = read(STORE.history, []);
   $("#historyCount").textContent = `${list.length}개의 기록`;
   $("#historyList").className = list.length ? "history-list" : "history-list empty";
-  $("#historyList").innerHTML = list.length ? list.map((x) => `<div class="history-row"><div><b>${escapeHtml(LABELS.area[x.area] || "돌본 공간")}</b><small>${new Date(x.date).toLocaleString("ko-KR")} · ${x.beforeAfter ? "사진 확인 완료" : x.awaitingPhotoVerification ? "사진 확인 대기" : "기록 완료"}</small></div><span>${escapeHtml((x.categories || []).map((type) => LABELS.careType[type]).join(" · ") || "집안 돌봄")}</span></div>`).join("") : "아직 기록이 없어요.";
+  $("#historyList").innerHTML = list.length ? list.map((x) => {
+    const mode = x.modeLabel || (x.guideType === "weekly_tracker" ? "주간 돌봄" : "일반 모드");
+    const encouragement = x.encouragement || "오늘 공간을 위한 시간을 남겼어요. 천천히 이어가도 괜찮아요.";
+    const item = (x.categories || []).map((type) => LABELS.careType[type]).join(" · ") || "집안 돌봄";
+    return `<article class="history-record-card"><div class="history-record-top"><span>${new Date(x.date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })}</span><em>${escapeHtml(mode)}</em></div><h3>${escapeHtml(LABELS.area[x.area] || "돌본 공간")}</h3><p>청소 항목 · ${escapeHtml(item)}</p><blockquote>${escapeHtml(encouragement)}</blockquote></article>`;
+  }).join("") : "아직 기록이 없어요.";
 }
 
 const DAILY_MISSIONS = [
