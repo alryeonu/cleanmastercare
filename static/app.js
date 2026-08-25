@@ -1203,8 +1203,9 @@ async function completePlanTask(task) {
     improved = !data.manual_required && data.same_target === true && Object.values(data.mission_checks || {}).some(Boolean);
   } catch { toast("사진 비교가 어려워 기록만 남겼어요."); }
   finally { loading(false); }
+  const afterThumbnail = await afterPhotoThumbnail(state.planAfterPhoto);
   const list = read(STORE.history, []);
-  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: "주간 돌봄", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, improved };
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: "주간 돌봄", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, afterThumbnail, improved };
   const index = list.findIndex((item) => item.id === record.id);
   if (index >= 0) list[index] = record; else list.unshift(record);
   write(STORE.history, list.slice(0, 50));

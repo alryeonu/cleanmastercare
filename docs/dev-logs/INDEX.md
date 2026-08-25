@@ -53,3 +53,4 @@
 - [2026-08-26 · 사진 장소 재등록 안내 렌더링 수정](2026-08-26-054-photo-place-retry-render.md)
 - [2026-08-26 · 돌봄 기록 카드 보강](2026-08-26-055-care-history-cards.md)
 - [2026-08-26 · 애프터 사진 기록 썸네일](2026-08-26-056-after-photo-history-thumbnails.md)
+- [2026-08-26 · 주간 돌봄 애프터 사진 썸네일](2026-08-26-057-weekly-after-photo-thumbnail.md)

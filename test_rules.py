@@ -239,6 +239,7 @@ def test_care_history_shows_date_item_mode_encouragement_and_after_thumbnail() -
     assert "afterPhotoThumbnail" in script
     assert "afterThumbnail" in script
     assert "history-after-thumbnail" in script
+    assert "afterPhotoThumbnail(state.planAfterPhoto)" in script
 
 
 def test_weekly_photo_must_match_the_planned_place_before_loading_a_guide() -> None:
