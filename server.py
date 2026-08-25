@@ -169,7 +169,7 @@ def call_openai(mode: str, images: list[str], context: dict[str, Any] | None = N
         }
         req = urllib.request.Request(OPENAI_URL, data=json.dumps(payload).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=25) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:
                 body = json.loads(response.read().decode())
             result = json.loads(extract_output_text(body))
             if mode in {"cleaning_area", "bathroom_check"}:

@@ -49,3 +49,4 @@
 - [2026-08-25 · 사진 관찰 기반 주간 청소 안내](2026-08-25-050-ai-photo-area-guide.md)
 - [2026-08-26 · 사진 분석 시간 제한과 직접 선택 대체](2026-08-26-051-photo-analysis-timeout-fallback.md)
 - [2026-08-26 · 욕실 사진 확인 게이트](2026-08-26-052-bathroom-photo-gate.md)
+- [2026-08-26 · 빠른 계획 장소 사진 확인과 진행률](2026-08-26-053-fast-place-check-progress.md)

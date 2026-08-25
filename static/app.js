@@ -140,7 +140,28 @@ async function submitLogin(event) {
 function today() { return new Date().toLocaleDateString("en-CA"); }
 function escapeHtml(value) { const d = document.createElement("div"); d.textContent = String(value ?? ""); return d.innerHTML; }
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
-function loading(on, text = "사진을 살펴보고 있어요") { $("#loadingText").textContent = text; $("#loading").classList.toggle("hidden", !on); }
+const PLAN_PHOTO_CHECK_TIMEOUT_MS = 12000;
+let loadingProgressTimer;
+function setLoadingProgress(value, message = "사진을 확인하고 있어요") {
+  const percent = Math.max(0, Math.min(100, Math.round(value)));
+  const bar = $("#loadingProgressBar"), progress = $("#loadingProgress"), label = $("#loadingPercent");
+  if (bar) bar.style.width = `${percent}%`;
+  if (progress) progress.setAttribute("aria-valuenow", String(percent));
+  if (label) label.textContent = `${percent}% · ${message}`;
+}
+function loading(on, text = "사진을 살펴보고 있어요", options = {}) {
+  clearInterval(loadingProgressTimer);
+  $("#loadingText").textContent = text;
+  $("#loading").classList.toggle("hidden", !on);
+  if (!on) { setLoadingProgress(0); return; }
+  if (!options.progress) { setLoadingProgress(0); return; }
+  const startedAt = Date.now(), duration = options.duration || PLAN_PHOTO_CHECK_TIMEOUT_MS;
+  setLoadingProgress(4, "사진을 확인하고 있어요");
+  loadingProgressTimer = setInterval(() => {
+    const percent = Math.min(92, 4 + ((Date.now() - startedAt) / duration) * 88);
+    setLoadingProgress(percent, "사진을 확인하고 있어요");
+  }, 160);
+}
 function updateZoomButton(active) { const button = $("#easyToggle"); button.textContent = active ? "축소 모드" : "확대 모드"; button.setAttribute("aria-pressed", active); button.setAttribute("aria-label", active ? "화면 축소 모드" : "화면 확대 모드"); }
 
 async function post(url, body, timeoutMs = 35000) {
@@ -1116,7 +1137,7 @@ function renderWeeklyPlan() {
   const guideSource = guide?.mode === "local_fallback" ? "BASIC CARE GUIDE" : "SUPABASE CLEANING GUIDE";
   const guideIntro = guide?.mode === "local_fallback" ? "연결 상태와 관계없이 이어갈 수 있는 기본 절차예요." : "Supabase에서 조회한 검수된 절차를 순서대로 안내해요.";
   const detectedNote = guide?.detected ? `<p class="plan-detected">사진에서 <b>${LABELS.area[guideArea]}</b> 후보를 관찰해 이 공간의 절차를 안내해요.</p>` : "";
-  const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">BATHROOM PHOTO CHECK</span><h3>욕실 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 욕실 단서를 확인하기 어려워요.")} 욕실의 세면대·타일·샤워 공간 등이 보이도록 한 장을 다시 올려주세요.</p></section>` : guide ? `<section class="plan-guide"><span class="kicker">${guideSource}</span><h3>${LABELS.area[guideArea]} 청소 절차</h3>${detectedNote}<p>${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.</p><ol>${guide.steps.slice(0, 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">사진이 욕실인지 확인하고 있어요.</p>` : "";
+  const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">PHOTO PLACE CHECK</span><h3>${LABELS.area[current.area]} 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 오늘 돌볼 장소 단서를 확인하기 어려워요.")} 오늘 계획인 ${LABELS.area[current.area]}이(가) 보이도록 한 장을 다시 올려주세요.</p></section>` : guide ? `<section class="plan-guide"><span class="kicker">${guideSource}</span><h3>${LABELS.area[guideArea]} 청소 절차</h3>${detectedNote}<p>${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.</p><ol>${guide.steps.slice(0, 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">사진이 오늘의 ${LABELS.area[current.area]}인지 확인하고 있어요.</p>` : "";
   const photoMarkup = (data, label) => data ? `<img src="${data}" alt="${label} 미리보기">` : "";
   $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${(done || guide?.invalidPhoto) ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : guide?.invalidPhoto ? "욕실 사진을 다시 등록해주세요" : "개선 확인하고 텃밭 보기"}</button></div>`;
   $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); state.planGuide = null; state.planDetected = null; renderWeeklyPlan(); await analyzeWeeklyPhotoAndLoadGuide(current); } catch (error) { toast(error.message); } });
@@ -1124,21 +1145,21 @@ function renderWeeklyPlan() {
   $("#completePlanTask").addEventListener("click", () => completePlanTask(current));
 }
 async function analyzeWeeklyPhotoAndLoadGuide(task) {
-  let detected = { area: "bathroom", categories: ["clean"], focus: "unknown", detected: true, manual: false };
-  loading(true, "사진이 욕실인지 AI가 확인하고 있어요");
+  let detected = { area: task.area, categories: ["clean"], focus: "unknown", detected: true, manual: false };
+  loading(true, `사진이 ${LABELS.area[task.area]}인지 확인하고 있어요`, { progress: true, duration: PLAN_PHOTO_CHECK_TIMEOUT_MS });
   try {
     const analysis = await post("/api/analyze", {
-      mode: "bathroom_check",
+      mode: "cleaning_area",
       images: [state.planPhoto],
-      context: { area: "other", categories: [], focus: "unknown" },
-    }, 35000);
-    if (analysis.manual_required || !analysis.is_bathroom) {
-      state.planGuide = { invalidPhoto: true, message: analysis.manual_required ? "사진 확인이 어려워요." : "사진에서 욕실 단서를 확인하지 못했어요." };
+      context: { area: task.area, categories: [], focus: "unknown" },
+    }, PLAN_PHOTO_CHECK_TIMEOUT_MS);
+    if (analysis.manual_required || analysis.area_hint !== task.area) {
+      state.planGuide = { invalidPhoto: true, message: analysis.manual_required ? "사진 확인이 어려워요." : `사진에서 ${LABELS.area[task.area]} 단서를 확인하지 못했어요.` };
       renderWeeklyPlan();
       return;
     }
   } catch {
-    state.planGuide = { invalidPhoto: true, message: "사진 확인이 오래 걸려 욕실 여부를 판단하지 못했어요." };
+    state.planGuide = { invalidPhoto: true, message: "사진 확인이 12초 안에 끝나지 않았어요." };
     renderWeeklyPlan();
     return;
   } finally {

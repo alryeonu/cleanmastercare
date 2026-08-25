@@ -230,17 +230,17 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert "coupang" not in script.lower()
 
 
-def test_weekly_photo_must_pass_an_ai_bathroom_check_before_loading_a_guide() -> None:
+def test_weekly_photo_must_match_the_planned_place_before_loading_a_guide() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     backend = (ROOT / "server.py").read_text(encoding="utf-8")
     assert "analyzeWeeklyPhotoAndLoadGuide" in script
-    assert 'mode: "bathroom_check"' in script
-    assert 'context: { area: "other", categories: [], focus: "unknown" }' in script
-    assert "!analysis.is_bathroom" in script
-    assert 'area: "bathroom"' in script
+    assert 'mode: "cleaning_area"' in script
+    assert 'context: { area: task.area, categories: [], focus: "unknown" }' in script
+    assert "analysis.area_hint !== task.area" in script
+    assert 'area: task.area' in script
     assert "await loadWeeklyGuide(detected)" in script
-    assert '"bathroom_check"' in backend
-    assert "욕실 단서가 충분할 때만" in backend
+    assert '"cleaning_area"' in backend
+    assert "사진에서 실제로 관찰되는 공간을 먼저 판단" in backend
 
 
 def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
@@ -254,7 +254,11 @@ def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
     assert "loading(false);" in script
     assert "욕실 사진을 다시 등록해주세요" in script
     assert 'image_detail = "low" if mode in {"cleaning_area", "bathroom_check"} else "high"' in backend
-    assert 'urlopen(req, timeout=25)' in backend
+    assert "PLAN_PHOTO_CHECK_TIMEOUT_MS = 12000" in script
+    assert 'duration: PLAN_PHOTO_CHECK_TIMEOUT_MS' in script
+    assert 'id="loadingProgress"' in (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert "setLoadingProgress" in script
+    assert 'urlopen(req, timeout=10)' in backend
     assert 'status_code=503' in backend
     assert '"maxDuration": 60' in vercel
 
