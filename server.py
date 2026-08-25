@@ -136,7 +136,10 @@ def call_openai(mode: str, images: list[str], context: dict[str, Any] | None = N
     area = str(selected.get("area", "other"))
     categories = [item for item in selected.get("categories", []) if item in {"organize", "clean", "laundry"}] if isinstance(selected.get("categories", []), list) else []
     focus = str(selected.get("focus", "unknown"))
-    context_text = f"\n사용자 선택 장소: {area}. 사용자 선택 분류: {', '.join(categories) or '없음'}. 사용자 선택 핵심 문제: {focus}. 이 선택 범위만 고려하세요."
+    if mode == "cleaning_area":
+        context_text = f"\n사용자 계획 장소: {area}. 이 값은 사진 판정의 정답이 아닙니다. 사진에서 실제로 관찰되는 공간을 먼저 판단하고, 보이지 않으면 unknown을 반환하세요."
+    else:
+        context_text = f"\n사용자 선택 장소: {area}. 사용자 선택 분류: {', '.join(categories) or '없음'}. 사용자 선택 핵심 문제: {focus}. 이 선택 범위만 고려하세요."
     content: list[dict[str, Any]] = [{"type": "input_text", "text": PROMPTS[mode] + context_text}]
     content.extend({"type": "input_image", "image_url": image, "detail": "high"} for image in images)
     last_error = "AI 분석에 실패했습니다."

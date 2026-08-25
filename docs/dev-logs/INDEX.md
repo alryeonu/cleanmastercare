@@ -45,3 +45,5 @@
 - [2026-08-25 · 단순 텃밭과 한 화면 청소 안내](2026-08-25-046-simple-garden-and-guide.md)
 - [2026-08-25 · 주간 돌봄 트래커와 집 앞 텃밭](2026-08-25-047-weekly-care-tracker.md)
 - [2026-08-25 · 주간 청소 절차와 돌봄농장 완성 연출](2026-08-25-048-weekly-guide-garden-celebration.md)
+- [2026-08-25 · 청소 미션당 한 칸 새싹](2026-08-25-049-one-plant-per-mission.md)
+- [2026-08-25 · 사진 관찰 기반 주간 청소 안내](2026-08-25-050-ai-photo-area-guide.md)

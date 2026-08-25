@@ -230,15 +230,28 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert "coupang" not in script.lower()
 
 
+def test_weekly_photo_uses_ai_observed_area_before_loading_a_guide() -> None:
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    backend = (ROOT / "server.py").read_text(encoding="utf-8")
+    assert "analyzeWeeklyPhotoAndLoadGuide" in script
+    assert 'mode: "cleaning_area"' in script
+    assert 'context: { area: "other", categories: [], focus: "unknown" }' in script
+    assert "area: analysis.area_hint" in script
+    assert "await loadWeeklyGuide(detected)" in script
+    assert "사진 판정의 정답이 아닙니다" in backend
+
+
 def test_garden_has_a_house_path_and_crop_plots_without_sprout_captions() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
     assert 'class="garden-house"' in markup
     assert 'class="farm-path"' in markup
-    assert 'class="garden-bed-grid"' in markup
+    assert 'id="gardenPlantSlots"' in markup
     assert "GARDEN_CROPS" in script
-    assert '$("#gardenStageLabel").textContent = hasCrop ? "" : stage.label;' in script
+    assert "gardenPlantsForCompletedMissions" in script
+    assert 'Array.from({ length: 4 }' in script
+    assert 'garden-bed-slot ${plant ? "planted" : ""}' in script
     assert ".garden-bed-grid" in styles
     assert ".garden-sparkles.show" in styles
 
