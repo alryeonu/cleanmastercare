@@ -245,6 +245,8 @@ def test_weekly_plan_modes_keep_the_guide_and_gate_product_recommendations() -> 
     assert "globalThis.PRODUCT_CATALOG" in catalog
     assert "coupang.com/np/search?q=" in script
     assert "염소계 제품은 산성세제·식초·구연산·암모니아 제품과 절대 섞지 마세요." in catalog
+    assert ".product-image-fallback[hidden]{display:none!important}" in (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert ".product-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}" in (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
 
 
 def test_care_history_shows_date_item_mode_encouragement_and_after_thumbnail() -> None:

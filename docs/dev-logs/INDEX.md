@@ -1,5 +1,6 @@
 # 개발일지 목록
 
+- [2026-08-26 · 제품 추천 카드 공간 효율화](2026-08-26-065-compact-product-recommendation-cards.md)
 - [2026-08-25 · 전후 사진 3단계 미션](2026-08-25-001-before-after-checklist.md)
 - [2026-08-25 · 사진 미션 화면 디자인](2026-08-25-002-photo-mission-visual-design.md)
 - [2026-08-25 · 원본 디자인 언어 복원](2026-08-25-003-restore-source-design.md)
