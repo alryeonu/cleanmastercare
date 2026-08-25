@@ -213,11 +213,22 @@ def call_grounded_openai(context: dict[str, Any], schema: dict[str, Any]) -> dic
     return json.loads(extract_output_text(body))
 
 
+def get_supabase_server_key() -> tuple[str, str]:
+    """서버 전용 Supabase 키와 키 형식을 반환한다."""
+    secret_key = os.getenv("SUPABASE_SECRET_KEY", "").strip()
+    if secret_key:
+        return secret_key, "secret"
+    service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    if service_role_key:
+        return service_role_key, "service_role"
+    return "", "none"
+
+
 def verify_supabase_route(context: dict[str, Any]) -> bool:
     """서버 전용 RPC의 active release가 번들 snapshot과 같은지 확인한다."""
     supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
-    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-    if not supabase_url or not service_key:
+    server_key, key_type = get_supabase_server_key()
+    if not supabase_url or not server_key:
         return False
     normalized = context["request"]
     payload = {
@@ -228,14 +239,16 @@ def verify_supabase_route(context: dict[str, Any]) -> bool:
         "p_target_code": normalized["target_code"],
         "p_part_code": normalized["part_code"],
     }
+    headers = {
+        "apikey": server_key,
+        "Content-Type": "application/json",
+    }
+    if key_type == "service_role":
+        headers["Authorization"] = f"Bearer {server_key}"
     request = urllib.request.Request(
         f"{supabase_url}/rest/v1/rpc/resolve_cleaning_procedure",
         data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "apikey": service_key,
-            "Authorization": f"Bearer {service_key}",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=5) as response:
@@ -422,9 +435,7 @@ def health() -> dict[str, Any]:
         "service": "청소의 고수",
         "openai_configured": bool(os.getenv("OPENAI_API_KEY", "").strip()),
         "grounded_llm_enabled": env_enabled("ENABLE_GROUNDED_GUIDE_LLM"),
-        "supabase_configured": bool(
-            os.getenv("SUPABASE_URL", "").strip() and os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-        ),
+        "supabase_configured": bool(os.getenv("SUPABASE_URL", "").strip() and get_supabase_server_key()[0]),
         "knowledge_release": repository.release_key,
         "model": OPENAI_MODEL,
     }

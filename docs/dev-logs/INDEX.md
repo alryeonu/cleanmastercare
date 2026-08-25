@@ -34,3 +34,4 @@
 - [2026-08-25 · 사진 비교 체크리스트 포인트 정렬](2026-08-25-032-photo-checklist-point-alignment.md)
 - [2026-08-25 · 게시글 팝업과 익명 댓글](2026-08-25-033-community-thread-comments.md)
 - [2026-08-25 · 참고 시각 자산 되돌리기](2026-08-25-037-revert-reference-visuals.md)
+- [2026-08-25 · Supabase 새 Secret Key 연결](2026-08-25-038-supabase-secret-key-connection.md)

@@ -25,6 +25,7 @@ def request_payload(**overrides):
 
 def test_api_service_returns_local_release_when_remote_is_unconfigured(monkeypatch) -> None:
     monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SECRET_KEY", raising=False)
     monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
     monkeypatch.delenv("ENABLE_GROUNDED_GUIDE_LLM", raising=False)
 
@@ -34,6 +35,88 @@ def test_api_service_returns_local_release_when_remote_is_unconfigured(monkeypat
     assert len(result["steps"]) == 6
     assert result["stop_rules"]
     assert result["sources"]
+
+
+def test_supabase_secret_key_uses_apikey_header_only(monkeypatch) -> None:
+    context = server.get_knowledge_repository().build_context(request_payload())
+    retrieval = context["retrieval"]
+    captured = {}
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return server.json.dumps(
+                {
+                    "release_key": retrieval["release_key"],
+                    "manifest_hash": retrieval["manifest_hash"],
+                    "procedure_version_id": retrieval["procedure_version"]["id"],
+                    "required_step_count": retrieval["procedure_version"]["required_step_count"],
+                }
+            ).encode("utf-8")
+
+    def urlopen(request, timeout):
+        captured["headers"] = {key.lower(): value for key, value in request.header_items()}
+        captured["timeout"] = timeout
+        return Response()
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test-placeholder")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "legacy-placeholder")
+    monkeypatch.setattr(server.urllib.request, "urlopen", urlopen)
+
+    assert server.verify_supabase_route(context) is True
+    assert captured["headers"]["apikey"] == "sb_secret_test-placeholder"
+    assert "authorization" not in captured["headers"]
+    assert captured["timeout"] == 5
+
+
+def test_legacy_service_role_key_remains_compatible(monkeypatch) -> None:
+    context = server.get_knowledge_repository().build_context(request_payload())
+    retrieval = context["retrieval"]
+    captured = {}
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return server.json.dumps(
+                {
+                    "release_key": retrieval["release_key"],
+                    "manifest_hash": retrieval["manifest_hash"],
+                    "procedure_version_id": retrieval["procedure_version"]["id"],
+                    "required_step_count": retrieval["procedure_version"]["required_step_count"],
+                }
+            ).encode("utf-8")
+
+    def urlopen(request, timeout):
+        captured["headers"] = {key.lower(): value for key, value in request.header_items()}
+        return Response()
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.delenv("SUPABASE_SECRET_KEY", raising=False)
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "legacy-placeholder")
+    monkeypatch.setattr(server.urllib.request, "urlopen", urlopen)
+
+    assert server.verify_supabase_route(context) is True
+    assert captured["headers"]["apikey"] == "legacy-placeholder"
+    assert captured["headers"]["authorization"] == "Bearer legacy-placeholder"
+
+
+def test_health_recognizes_supabase_secret_key(monkeypatch) -> None:
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test-placeholder")
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+
+    assert server.health()["supabase_configured"] is True
 
 
 def test_api_service_marks_verified_supabase_release_as_canonical(monkeypatch) -> None:
