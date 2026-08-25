@@ -29,6 +29,8 @@
 - `node --check static/room-canvas3d.js`: 성공.
 - 실제 브라우저 1440px·768px·360px에서 잠긴 과수원과 창고가 숨겨짐을 확인했다.
 - 768px과 360px에서 문서 너비가 뷰포트 너비를 넘지 않아 가로 스크롤이 없음을 확인했다.
+- Vercel Production 배포 후 1440px·360px에서 과수원과 창고가 `visibility: hidden`, `opacity: 0`임을 다시 확인했다.
+- 배포 화면의 브라우저 콘솔 오류: 0건.
 
 ## 남은 위험과 제한
 
