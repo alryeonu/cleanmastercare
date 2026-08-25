@@ -114,7 +114,7 @@ function startSignedInApp() {
   renderAccount();
   const requested = ["home", "mission", "room", "community", "cash"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home";
   showView(read(STORE.weeklyPlan, null) ? requested : "mission");
-  updateCounters(); renderDailyMission(); renderSpendShop(); renderRoom(); health();
+  updateCounters(); renderDailyMission(); renderRoom(); health();
 }
 async function submitLogin(event) {
   event.preventDefault();
@@ -394,7 +394,6 @@ function purchaseDecor(item) {
   if (hasDecor(item.id)) return;
   if (!spendMemories(item.id, item.cost, `${item.title} 꾸미기`, "decor")) return;
   write(STORE.decor, [...ownedDecor(), item.id]);
-  renderSpendShop();
   renderRoom();
 }
 
@@ -991,7 +990,7 @@ async function comparePhotos() {
       write(STORE.badges, Number(read(STORE.badges, 0)) + (cashEvents().some((e) => e.key === `${today()}:before-after-badge`) ? 0 : 1));
       const events = cashEvents(); if (!events.some((e) => e.key === `${today()}:before-after-badge`)) { events.unshift({ key: `${today()}:before-after-badge`, amount: 0, title: "전후 기록 인증 배지", at: new Date().toISOString() }); write(STORE.events, events); }
       updateCounters();
-      renderSpendShop(); renderRoom();
+      renderRoom();
     }
   } catch (e) { toast(e.message); }
   finally { loading(false); }
@@ -1063,6 +1062,12 @@ function renderRoom() {
     const plant = plants[index];
     return `<div class="garden-bed-slot ${plant ? "planted" : ""}" aria-label="${plant ? "새싹이 심어진 밭" : "비어 있는 밭"}"><span aria-hidden="true">${plant ? plant.sprout : ""}</span></div>`;
   }).join("");
+  const decorations = [];
+  if (progress >= 1) decorations.push('<span class="garden-flower-patch flower-left">🌼 🌷</span>');
+  if (progress >= 2) decorations.push('<span class="garden-scarecrow">🌾</span>');
+  if (progress >= 3) decorations.push('<span class="garden-pond">🦆</span>');
+  if (progress >= 4) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
+  $("#gardenDecorations").innerHTML = decorations.join("");
   $("#gardenSparkles")?.classList.toggle("show", state.gardenCelebration);
   $("#roomTitle").textContent = stage.title;
   $("#roomMessage").textContent = stage.message;
@@ -1226,7 +1231,6 @@ async function completePlanTask(task) {
 
 function renderCash() {
   updateCounters();
-  renderSpendShop();
   const events = cashEvents().filter((e) => e.amount !== 0);
   $("#cashEvents").className = events.length ? "" : "empty";
   $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.title)}</b><br><small>${new Date(e.at).toLocaleString("ko-KR")}</small></div><strong class="${e.amount < 0 ? "spent" : "earned"}">${e.amount > 0 ? "+" : ""}${e.amount}조각</strong></div>`).join("") : "아직 기억의 조각 내역이 없어요.";

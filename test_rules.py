@@ -291,6 +291,16 @@ def test_garden_has_a_house_path_and_crop_plots_without_sprout_captions() -> Non
     assert ".garden-sparkles.show" in styles
 
 
+def test_cash_page_has_no_decor_purchase_outfit_or_gift_sections() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert 'id="decorShop"' not in markup
+    assert 'id="outfitShop"' not in markup
+    assert 'id="giftShop"' not in markup
+    assert 'id="gardenDecorations"' in markup
+    assert "garden-flower-patch" in script
+
+
 def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert "오늘의 작은 돌봄도 충분해요" in markup

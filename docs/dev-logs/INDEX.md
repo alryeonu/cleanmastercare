@@ -54,3 +54,4 @@
 - [2026-08-26 · 돌봄 기록 카드 보강](2026-08-26-055-care-history-cards.md)
 - [2026-08-26 · 애프터 사진 기록 썸네일](2026-08-26-056-after-photo-history-thumbnails.md)
 - [2026-08-26 · 주간 돌봄 애프터 사진 썸네일](2026-08-26-057-weekly-after-photo-thumbnail.md)
+- [2026-08-26 · 텃밭 자동 장식과 기록 화면 단순화](2026-08-26-058-garden-decor-instead-of-shop.md)

@@ -81,6 +81,7 @@
             <div class="farm-land">
               <div class="farm-path" aria-hidden="true"></div><div class="farm-fence" aria-hidden="true"></div>
               <div class="garden-house" aria-hidden="true"><i></i><b></b><span></span></div>
+              <div id="gardenDecorations" class="garden-decorations" aria-hidden="true"></div>
               <div class="garden-bed-grid" id="gardenPlantSlots" aria-label="집 앞 텃밭" aria-live="polite"></div><span id="gardenSparkles" class="garden-sparkles" aria-hidden="true">✦ ✧ ✦</span>
             </div>
           </div>
@@ -101,10 +102,6 @@
       <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MEMORY PIECES</span><h1>행동이 남긴 기억의 조각</h1><p>청소를 시작하고 한 단계를 마주한 순간이 조각으로 남아 기억나무의 씨앗이 돼요.</p></div></div>
       <div class="cash-hero"><div><span>간직한 조각</span><strong><span data-cash>0</span>개</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
       <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY CARE RECORD</span><h2>기억과 기록을 한곳에</h2><p>이번 주 계획을 지킨 순간과 기억의 조각을 함께 볼 수 있어요.</p><div class="collection-pill">완료한 계획 <b id="recordPlanCount">0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🏡</div><div><span>집 앞 나의 텃밭</span><button class="link-button" data-view="room">텃밭 보러 가기 →</button></div></div><div class="spend-balance"><span>간직한 기억</span><strong><span data-cash>0</span>조각</strong></div></section>
-      <div class="spend-tabs" role="tablist" aria-label="기억의 조각 사용처"><button class="active" data-spend-tab="decor" role="tab" aria-selected="true">농장 꾸미기</button><button data-spend-tab="outfit" role="tab" aria-selected="false">농부 옷</button><button data-spend-tab="gift" role="tab" aria-selected="false">기프티콘 선택</button></div>
-      <section id="decorShop" class="spend-panel" aria-label="농장 꾸미기 아이템"><div class="spend-panel-head"><div><span class="kicker">FARM DECOR SHOP</span><h2>농장에 조경을 더해 볼까요?</h2></div><button class="secondary" data-view="room">내 농장 보기</button></div><p class="spend-note">한 번 고른 조경은 기억의 조각을 다시 쓰지 않아도 농장에 남아요.</p><div id="decorGrid" class="spend-grid"></div></section>
-      <section id="outfitShop" class="spend-panel hidden" aria-label="농부 옷 상점"><div class="spend-panel-head"><div><span class="kicker">FARMER CLOSET</span><h2>농부 친구에게 새 옷을 선물해요</h2></div><button class="secondary" data-view="room">입혀 보러 가기</button></div><p class="spend-note">구입한 옷은 농장 속 캐릭터 꾸미기 옷장에 영구 보관돼요.</p><div id="outfitGrid" class="spend-grid"></div></section>
-      <section id="giftShop" class="spend-panel hidden" aria-label="기프티콘 선택"><div class="spend-panel-head"><div><span class="kicker">A LITTLE TREAT</span><h2>오늘의 나에게 작은 선물</h2></div></div><div id="giftGrid" class="spend-grid"></div><div id="giftHistory" class="gift-history"></div></section>
       <div class="card return-note"><span class="kicker">WELCOME BACK MEMORY</span><h2>쉬었다 돌아와도 실패가 아니에요.</h2><p>이틀 이상 쉬었다가 사진을 찍거나 생활 돌봄 미션을 완료하면 기억의 조각 5개를 남겨요. 연속 출석과 끊김은 표시하지 않아요.</p></div>
       <div class="card"><h2>기억의 조각 내역</h2><div id="cashEvents" class="empty">아직 기억의 조각 내역이 없어요.</div></div>
       <section class="record-section card"><div class="history-toolbar"><div><span class="kicker">CARE RECORD</span><h2>돌봄 기록</h2><span id="historyCount">0개의 기록</span></div><button id="clearHistory" class="text-button danger">전체 삭제</button></div><div id="historyList" class="history-list empty">아직 기록이 없어요.</div></section>
@@ -142,6 +139,6 @@
   <nav class="bottom-nav five-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>▦</span>이번 주</button><button data-view="room"><span>🌱</span>텃밭</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기록·기억</button></nav>
   <div id="loading" class="loading hidden" role="status" aria-live="polite"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><div id="loadingProgress" class="loading-progress" role="progressbar" aria-label="사진 확인 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b id="loadingProgressBar"></b></div><small id="loadingPercent">0% · 잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/app.js?v=weekly-guide10"></script>
+  <script src="/assets/app.js?v=weekly-guide11"></script>
 </body>
 </html>
