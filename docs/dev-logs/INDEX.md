@@ -40,3 +40,4 @@
 - [2026-08-25 · 기본 농가 유지](2026-08-25-041-default-farmhouse.md)
 - [2026-08-25 · 농장 응원 문구 변경](2026-08-25-042-farm-encouragement-copy.md)
 - [2026-08-25 · 홈 제목 줄바꿈 정리](2026-08-25-043-home-title-line-break.md)
+- [2026-08-25 · 커뮤니티 게시판형 목록](2026-08-25-044-community-bulletin-board.md)
