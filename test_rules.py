@@ -230,15 +230,17 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert "coupang" not in script.lower()
 
 
-def test_weekly_photo_uses_ai_observed_area_before_loading_a_guide() -> None:
+def test_weekly_photo_must_pass_an_ai_bathroom_check_before_loading_a_guide() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     backend = (ROOT / "server.py").read_text(encoding="utf-8")
     assert "analyzeWeeklyPhotoAndLoadGuide" in script
-    assert 'mode: "cleaning_area"' in script
+    assert 'mode: "bathroom_check"' in script
     assert 'context: { area: "other", categories: [], focus: "unknown" }' in script
-    assert "area: analysis.area_hint" in script
+    assert "!analysis.is_bathroom" in script
+    assert 'area: "bathroom"' in script
     assert "await loadWeeklyGuide(detected)" in script
-    assert "사진 판정의 정답이 아닙니다" in backend
+    assert '"bathroom_check"' in backend
+    assert "욕실 단서가 충분할 때만" in backend
 
 
 def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
@@ -250,8 +252,8 @@ def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
     assert "AbortController" in script
     assert "timeoutMs = 35000" in script
     assert "loading(false);" in script
-    assert 'id="weeklyAreaOverride"' in script
-    assert 'image_detail = "low" if mode == "cleaning_area" else "high"' in backend
+    assert "욕실 사진을 다시 등록해주세요" in script
+    assert 'image_detail = "low" if mode in {"cleaning_area", "bathroom_check"} else "high"' in backend
     assert 'urlopen(req, timeout=25)' in backend
     assert 'status_code=503' in backend
     assert '"maxDuration": 60' in vercel

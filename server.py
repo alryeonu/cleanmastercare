@@ -60,6 +60,17 @@ ANALYSIS_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "required": ["area_hint", "visible_categories", "cleaning_focus", "confidence", "observations", "needs_user_confirmation"],
     },
+    "bathroom_check": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "is_bathroom": {"type": "boolean"},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "observations": {"type": "array", "items": {"type": "string"}},
+            "needs_user_confirmation": {"type": "boolean"},
+        },
+        "required": ["is_bathroom", "confidence", "observations", "needs_user_confirmation"],
+    },
     "before_after": {
         "type": "object",
         "additionalProperties": False,
@@ -97,6 +108,7 @@ ANALYSIS_SCHEMAS: dict[str, dict[str, Any]] = {
 
 PROMPTS = {
     "cleaning_area": """당신은 집안 공간 사진에서 관찰 가능한 정리·청소·세탁 후보를 설명하는 시각 관찰 도우미입니다. area_hint는 보이는 공간에 가장 가까운 하나를 고르고, visible_categories에는 사진에서 실제로 할 일이 보이는 organize(물건 분류·제자리 정리), clean(먼지·얼룩·부스러기 등 표면 정리), laundry(세탁이 필요한 천·의류·침구)가 있으면 넣으세요. cleaning_focus는 사진의 가장 뚜렷한 문제 하나로 고르세요: water_scale은 수전·타일·유리의 하얗고 딱딱한 물자국/광물 자국, soap_scum은 뿌연 비누막, grease는 끈적한 기름막, dust는 마른 먼지·부스러기, clutter는 물건이 섞여 정리가 필요한 상태, laundry는 세탁할 천·의류·침구입니다. 근거가 부족하면 unknown을 반환하세요. observations에는 보이는 위치·물건·상태를 한국어로 2~4개 적으세요. 사람의 성실성·정신건강·청결도 점수는 절대 만들지 말고, 보이지 않는 재질·세제 정보는 만들지 마세요. 사용자가 최종 확인해야 합니다.""",
+    "bathroom_check": """당신은 사진이 욕실인지 여부만 관찰하는 도우미입니다. 타일, 세면대, 변기, 욕조, 샤워기, 욕실 거울, 배수구처럼 사진에서 보이는 욕실 단서가 충분할 때만 is_bathroom을 true로 반환하세요. 방, 책상, 수납장, 주방, 거실처럼 욕실 단서가 없거나 사진만으로 확신할 수 없으면 false를 반환하세요. observations에는 보이는 단서만 1~3개 한국어로 적으세요. 청소 방법, 사람 평가, 재질·제품 판단, 사진에 없는 사실은 만들지 마세요.""",
     "before_after": "두 사진을 반드시 비교 관찰하세요. 먼저 싱크대 모서리·수도꼭지·배수구, 책상 모서리·서랍, 소파 쿠션·팔걸이처럼 같은 위치임을 보여 주는 고정 기준점을 2개 이상 찾으세요. 기준점이 충분히 일치하지 않으면 same_target은 false입니다. 조명·촬영 거리·그림자만 달라진 경우에는 변화로 단정하지 마세요. same_target이 false이거나 관찰 근거가 부족하면 mission_checks의 세 값은 모두 false이고 mission_evidence의 세 배열은 모두 빈 배열입니다. same_target이 true면 BEFORE와 AFTER의 같은 영역을 항목별로 다시 확인하세요. organize는 물건이 분류되거나 제자리에 놓여 공간이 정리된 경우, clean은 보이는 먼지·부스러기·얼룩·물때가 줄어든 경우, laundry는 세탁 대상 천·의류·침구가 분리·수거되거나 정돈된 경우에만 true입니다. true인 항목은 mission_evidence에 사진에서 확인한 짧은 근거 1~2개를 적고, false 항목은 빈 배열로 반환하세요. 선택하지 않은 범주는 반드시 false와 빈 배열입니다. 청결도 점수, 순위, 사람의 노력이나 성실성 평가는 금지합니다.",
 }
 
@@ -136,19 +148,21 @@ def call_openai(mode: str, images: list[str], context: dict[str, Any] | None = N
     area = str(selected.get("area", "other"))
     categories = [item for item in selected.get("categories", []) if item in {"organize", "clean", "laundry"}] if isinstance(selected.get("categories", []), list) else []
     focus = str(selected.get("focus", "unknown"))
-    if mode == "cleaning_area":
+    if mode == "bathroom_check":
+        context_text = f"\n사용자 계획 장소: {area}. 이 값은 사진 판정의 정답이 아닙니다. 사진에서 욕실 단서가 충분할 때만 true를, 그 밖에는 false를 반환하세요."
+    elif mode == "cleaning_area":
         context_text = f"\n사용자 계획 장소: {area}. 이 값은 사진 판정의 정답이 아닙니다. 사진에서 실제로 관찰되는 공간을 먼저 판단하고, 보이지 않으면 unknown을 반환하세요."
     else:
         context_text = f"\n사용자 선택 장소: {area}. 사용자 선택 분류: {', '.join(categories) or '없음'}. 사용자 선택 핵심 문제: {focus}. 이 선택 범위만 고려하세요."
     content: list[dict[str, Any]] = [{"type": "input_text", "text": PROMPTS[mode] + context_text}]
-    image_detail = "low" if mode == "cleaning_area" else "high"
+    image_detail = "low" if mode in {"cleaning_area", "bathroom_check"} else "high"
     content.extend({"type": "input_image", "image_url": image, "detail": image_detail} for image in images)
     last_error = "AI 분석에 실패했습니다."
     for model in models[:2]:
         payload = {
             "model": model,
             "store": False,
-            "reasoning": {"effort": "low" if mode == "cleaning_area" else "high"},
+            "reasoning": {"effort": "low" if mode in {"cleaning_area", "bathroom_check"} else "high"},
             "input": [{"role": "user", "content": content}],
             "text": {"format": {"type": "json_schema", "name": f"clean_master_{mode}", "strict": True, "schema": ANALYSIS_SCHEMAS[mode]}},
             "max_output_tokens": 1200,
@@ -158,7 +172,7 @@ def call_openai(mode: str, images: list[str], context: dict[str, Any] | None = N
             with urllib.request.urlopen(req, timeout=25) as response:
                 body = json.loads(response.read().decode())
             result = json.loads(extract_output_text(body))
-            if mode == "cleaning_area":
+            if mode in {"cleaning_area", "bathroom_check"}:
                 result["needs_user_confirmation"] = True
             return result, model
         except urllib.error.HTTPError as exc:
