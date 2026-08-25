@@ -171,6 +171,12 @@ def test_locked_farm_items_do_not_leave_ghost_images() -> None:
     assert ".farm-item{opacity:.12;" not in source
 
 
+def test_farm_house_is_available_from_the_start() -> None:
+    source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert "cottage: true," in source
+    assert "농부 친구가 농가에서 기다리고 있어요" in source
+
+
 def test_local_nickname_login_scopes_care_progress_without_storing_photos() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")

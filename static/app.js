@@ -1036,7 +1036,7 @@ function renderRoom() {
     sunlight: verifiedPhotoSteps.size >= 1,
     field: verifiedPhotoSteps.size >= 1,
     crop: verifiedPhotoSteps.size >= 2,
-    cottage: has("daily-care"),
+    cottage: true,
     harvest: verifiedPhotoSteps.size >= 3,
     orchard: verifiedPhotoSteps.size >= 3,
   };
@@ -1051,8 +1051,8 @@ function renderRoom() {
   $(".care-room").dataset.warmth = String(count);
   $("#roomProgressCount").textContent = count;
   $("#roomProgressBar").style.width = `${(count / 6) * 100}%`;
-  const copy = count === 0
-    ? ["첫 햇살을 기다리는 빈 농장이에요", "공간 사진을 한 장 찍으면 농부 친구와 함께 첫 밭을 준비해요."]
+  const copy = count === 1
+    ? ["농부 친구가 농가에서 기다리고 있어요", "공간 사진을 한 장 찍으면 햇살과 첫 밭이 농장에 더해져요."]
     : count < 3
       ? ["흙 사이로 새싹이 올라오고 있어요", "작은 행동이 햇살과 밭이 되어 농장을 천천히 채우고 있어요."]
       : count < 6
