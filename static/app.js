@@ -110,7 +110,7 @@ function startSignedInApp() {
   updateZoomButton(!!settings.easy);
   renderAccount();
   showView(["home", "mission", "room", "community", "cash", "history"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home");
-  updateCounters(); renderDailyMission(); renderSpendShop(); renderFarmerStyle(); renderFarmGrowth(); health();
+  updateCounters(); renderDailyMission(); renderSpendShop(); renderRoom(); health();
 }
 async function submitLogin(event) {
   event.preventDefault();
@@ -288,7 +288,7 @@ function resetMissionForNewArea() {
   ["compareBeforePreview", "compareAfterPreview"].forEach((id) => $("#" + id).removeAttribute("src"));
   $("#removeArea").classList.add("hidden");
   $("#areaConfirmed").checked = false;
-  $("#completion").classList.add("hidden");
+  $("#completion").classList.remove("hidden");
   $("#comparisonChecklist").classList.add("hidden");
   $("#comparisonChecklist").innerHTML = "";
   $("#compareResult").innerHTML = "";
@@ -427,6 +427,7 @@ function farmerStyle() {
 }
 
 function renderFarmerStyle() {
+  if (!$(".worker-character")) return;
   const style = farmerStyle();
   const owned = ownedFarmerOutfits();
   $(".worker-character").textContent = FARMER_AVATARS[style.avatar];
@@ -775,8 +776,6 @@ async function analyzeArea() {
     } else {
       $("#areaSummary").textContent = `AI가 사진에서 보이는 할 일을 살폈어요. 실제 공간을 보고 수정해주세요.`;
       $("#observations").innerHTML = (data.observations || []).map((x) => `<span>${escapeHtml(x)}</span>`).join("") || "<span>관찰 근거 없음</span>";
-      const suggested = (data.visible_categories || []).filter((type) => ["organize", "clean", "laundry"].includes(type));
-      if (suggested.length) $$('input[name="careType"]').forEach((input) => { input.checked = suggested.includes(input.value); });
       if (LABELS.focus[data.cleaning_focus]) $("#cleaningFocus").value = data.cleaning_focus;
     }
     renderCareSummary();
@@ -815,13 +814,17 @@ async function confirmArea() {
     ? "검수된 Supabase 지식 릴리스"
     : guide.mode === "local_fallback" ? "검수된 로컬 지식 스냅샷" : "검수된 청소 지식";
   $("#guideIntro").textContent = `${guide.title || LABELS.area[context.area]} · ${sourceText}를 바탕으로 한 상세 순서예요.`;
-  state.scenario = 0;
+  saveHistory({ completed: false, awaitingPhotoVerification: true });
   renderScenario();
   goStep(3);
 }
 
-function careContext() { return { area: $("#careArea").value, categories: $$('input[name="careType"]:checked').map((input) => input.value), focus: $("#cleaningFocus")?.value || "unknown" }; }
-function renderCareSummary() { const context = careContext(); $("#selectedCareSummary").innerHTML = [`장소 · ${LABELS.area[context.area]}`, `핵심 문제 · ${LABELS.focus[context.focus]}`, ...context.categories.map((type) => `할 일 · ${LABELS.careType[type]}`)].map((text) => `<span>${escapeHtml(text)}</span>`).join("") || "<span>할 일을 하나 이상 골라주세요.</span>"; }
+function careContext() {
+  const focus = $("#cleaningFocus")?.value || "unknown";
+  const category = focus === "laundry" ? "laundry" : focus === "clutter" ? "organize" : "clean";
+  return { area: $("#careArea").value, categories: [category], focus };
+}
+function renderCareSummary() { const context = careContext(); $("#selectedCareSummary").innerHTML = [`장소 · ${LABELS.area[context.area]}`, `사진에서 확인할 문제 · ${LABELS.focus[context.focus]}`].map((text) => `<span>${escapeHtml(text)}</span>`).join(""); }
 
 function preferredCareType(context) {
   if (context.focus === "laundry" && context.categories.includes("laundry")) return "laundry";
@@ -894,48 +897,22 @@ function buildFallbackGuide(context) {
 
 function renderScenario() {
   const steps = state.guide?.steps || [];
-  const item = steps[state.scenario];
-  if (!item) return;
-  $("#scenarioCount").textContent = `${state.scenario + 1} / ${steps.length}`;
-  $("#scenarioBar").style.width = `${((state.scenario + 1) / steps.length) * 100}%`;
-  $("#scenarioKicker").textContent = `${LABELS.careType[item.kind] || "집안 돌봄"} · STEP ${state.scenario + 1}`;
-  $("#scenarioTitle").textContent = item.title;
-  $("#scenarioBody").textContent = item.body;
-  $("#scenarioCompletionBody").textContent = item.completion;
-  $("#scenarioPauseBody").textContent = item.pause || "불편하거나 위험하다고 느껴지면 멈추고, 무리하지 않아도 괜찮아요.";
-  const tipList = $("#scenarioTipList");
-  tipList.replaceChildren(...(item.tips || []).map((tip) => { const li = document.createElement("li"); li.textContent = tip; return li; }));
-  $("#scenarioTips").classList.toggle("hidden", !(item.tips || []).length);
-  const sourceById = new Map((state.guide.sources || []).map((source) => [source.id, source]));
-  const stepSources = (item.sourceIds || []).map((id) => sourceById.get(id)).filter(Boolean);
-  const sourceList = $("#scenarioSourceList");
-  sourceList.replaceChildren(...stepSources.map((source) => {
-    const li = document.createElement("li");
-    const link = document.createElement("a");
-    link.href = source.url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = `${source.publisher} · ${source.title}`;
-    li.append(link);
-    return li;
-  }));
-  $("#scenarioSources").classList.toggle("hidden", !stepSources.length);
-  $("#prevScenario").disabled = state.scenario === 0;
-  $("#nextScenario").textContent = state.scenario === steps.length - 1 ? "사진으로 완료 확인" : "완료";
+  const sourceById = new Map((state.guide?.sources || []).map((source) => [source.id, source]));
+  $("#guideSteps").innerHTML = steps.map((item, index) => {
+    const tips = (item.tips || []).length ? `<ul>${item.tips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join("")}</ul>` : "";
+    const sources = (item.sourceIds || []).map((id) => sourceById.get(id)).filter(Boolean);
+    const sourceLinks = sources.length ? `<details><summary>검수 출처</summary><ul>${sources.map((source) => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.publisher)} · ${escapeHtml(source.title)}</a></li>`).join("")}</ul></details>` : "";
+    return `<article class="guide-step-card"><span class="guide-step-number">${String(index + 1).padStart(2, "0")}</span><div><span class="kicker">${escapeHtml(LABELS.careType[item.kind] || "집안 돌봄")} · STEP ${index + 1}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><aside><strong>이 정도면 충분해요</strong><p>${escapeHtml(item.completion)}</p></aside>${tips ? `<aside class="guide-tips"><strong>단계 팁</strong>${tips}</aside>` : ""}<aside class="guide-pause"><strong>멈추고 확인할 것</strong><p>${escapeHtml(item.pause || "불편하거나 위험하다고 느껴지면 멈추고, 무리하지 않아도 괜찮아요.")}</p></aside>${sourceLinks}</div><button class="outline guide-speak" type="button" data-speak-guide-step="${index}">▷ 음성으로 듣기</button></article>`;
+  }).join("");
+  $$('[data-speak-guide-step]').forEach((button) => button.addEventListener("click", () => speakStep(Number(button.dataset.speakGuideStep))));
 }
 
-function nextScenario() {
-  const steps = state.guide.steps;
-  if (state.scenario < steps.length - 1) { state.scenario++; renderScenario(); return; }
-  saveHistory({ completed: false, awaitingPhotoVerification: true });
-  $("#completion").classList.remove("hidden");
-  $("#completion").scrollIntoView({ behavior: "smooth" });
-}
-
-function speakStep() {
+function speakStep(index) {
   if (!("speechSynthesis" in window)) return toast("이 브라우저에서는 음성 안내를 지원하지 않아요.");
+  const item = state.guide?.steps?.[index];
+  if (!item) return;
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${$("#scenarioTitle").textContent}. ${$("#scenarioBody").textContent}. 완료 기준. ${$("#scenarioCompletionBody").textContent}`);
+  const utterance = new SpeechSynthesisUtterance(`${item.title}. ${item.body}. 이 정도면 충분해요. ${item.completion}`);
   utterance.lang = "ko-KR"; utterance.rate = .9; speechSynthesis.speak(utterance);
 }
 
@@ -969,7 +946,7 @@ async function comparePhotos() {
       write(STORE.badges, Number(read(STORE.badges, 0)) + (cashEvents().some((e) => e.key === `${today()}:before-after-badge`) ? 0 : 1));
       const events = cashEvents(); if (!events.some((e) => e.key === `${today()}:before-after-badge`)) { events.unshift({ key: `${today()}:before-after-badge`, amount: 0, title: "전후 기록 인증 배지", at: new Date().toISOString() }); write(STORE.events, events); }
       updateCounters();
-      renderFarmGrowth(); renderSpendShop(); renderRoom();
+      renderSpendShop(); renderRoom();
     }
   } catch (e) { toast(e.message); }
   finally { loading(false); }
@@ -995,39 +972,32 @@ function renderComparisonChecklist(checks, evidence, pairHash) {
   return done.length;
 }
 
+const GARDEN_STAGES = [
+  { label: "텃밭", icon: "▦", title: "텃밭에서 시작해요", message: "첫 청소 미션을 마치면 기억의 조각 씨앗이 심어져요." },
+  { label: "기억의 조각 씨앗", icon: "✦", title: "기억의 조각 씨앗이 심어졌어요", message: "첫 미션에서 남긴 조각이 텃밭의 시작이 되었어요." },
+  { label: "새싹", icon: "🌱", title: "새싹이 올라왔어요", message: "청소 미션을 하나 더 마치면 새싹이 자라요." },
+  { label: "작은 나무", icon: "🌳", title: "작은 나무가 되었어요", message: "작은 행동이 차곡차곡 나무의 줄기가 되고 있어요." },
+  { label: "큰 나무", icon: "🌲", title: "큰 나무가 자랐어요", message: "계속 이어온 돌봄이 텃밭을 든든하게 채워요." },
+  { label: "과수원", icon: "🍎", title: "나만의 과수원이 되었어요", message: "청소 미션으로 남긴 기억이 풍성한 과수원이 되었어요." },
+];
+
+function completedGardenMissions() {
+  return read(STORE.history, []).filter((record) => record.beforeAfter && record.completed).length;
+}
+
 function renderRoom() {
-  const events = cashEvents().filter((e) => e.amount !== 0);
-  const has = (id) => events.some((event) => event.key.endsWith(`:${id}`));
-  const verifiedPhotoSteps = new Set(events.map((event) => event.key.match(/:photo-mission-[a-f0-9]+-(organize|clean|laundry)$/)?.[1]).filter(Boolean));
-  const unlocked = {
-    sunlight: verifiedPhotoSteps.size >= 1,
-    field: verifiedPhotoSteps.size >= 1,
-    crop: verifiedPhotoSteps.size >= 2,
-    cottage: true,
-    harvest: verifiedPhotoSteps.size >= 3,
-    orchard: verifiedPhotoSteps.size >= 3,
-  };
-  $$("[data-room-item]").forEach((item) => item.classList.toggle("unlocked", !!unlocked[item.dataset.roomItem]));
-  $$("[data-room-status]").forEach((item) => {
-    const ready = !!unlocked[item.dataset.roomStatus];
-    item.classList.toggle("unlocked", ready);
-    $("em", item).textContent = ready ? "함께하는 중 ✓" : "기다리는 중";
-  });
-  const count = ["sunlight", "field", "crop", "cottage", "harvest", "orchard"].filter((key) => unlocked[key]).length;
-  $$('[data-custom-decor]').forEach((item) => item.classList.toggle("owned", hasDecor(item.dataset.customDecor)));
-  $(".care-room").dataset.warmth = String(count);
-  $("#roomProgressCount").textContent = count;
-  $("#roomProgressBar").style.width = `${(count / 6) * 100}%`;
-  const copy = count === 1
-    ? ["농부 친구가 농가에서 기다리고 있어요", "공간 사진을 한 장 찍으면 햇살과 첫 밭이 농장에 더해져요."]
-    : count < 3
-      ? ["기억의 조각에서 새싹이 올라오고 있어요", "청소 미션의 기억이 나무가 되어 농장을 천천히 채우고 있어요."]
-      : count < 6
-        ? ["나만의 기억나무가 무럭무럭 자라요", "농가와 기억나무는 쉬는 날에도 사라지거나 시들지 않아요."]
-        : ["오늘의 돌봄이 풍성하게 열렸어요", "이 농장은 결과가 아니라 다시 생활을 돌본 행동으로 완성됐어요."];
-  $("#roomTitle").textContent = copy[0];
-  $("#roomMessage").textContent = copy[1];
-  renderFarmGrowth();
+  if (!$("#gardenStageLabel")) return;
+  const progress = Math.min(5, completedGardenMissions());
+  const stage = GARDEN_STAGES[progress];
+  $(".simple-garden").dataset.gardenStage = String(progress);
+  $("#gardenStageIcon").textContent = stage.icon;
+  $("#gardenStageLabel").textContent = stage.label;
+  $("#gardenStageHint").textContent = progress === 5 ? "이 텃밭은 계속 이어온 돌봄의 기억으로 가득해요." : "다음 청소 미션을 마치면 다음 모습으로 자라요.";
+  $("#roomTitle").textContent = stage.title;
+  $("#roomMessage").textContent = stage.message;
+  $("#roomProgressCount").textContent = progress;
+  $("#roomProgressBar").style.width = `${(progress / 5) * 100}%`;
+  $$(".garden-stage-list li").forEach((item, index) => item.classList.toggle("active", index <= progress));
 }
 
 const roomSurface = $(".care-room");
@@ -1098,31 +1068,20 @@ function setSpendTab(tab) {
   $("#giftShop").classList.toggle("hidden", tab !== "gift");
 }
 $$('[data-spend-tab]').forEach((b) => b.addEventListener("click", () => setSpendTab(b.dataset.spendTab)));
-$$('[data-crop-plot]').forEach((button) => button.addEventListener("click", () => selectCropPlot(button.dataset.cropPlot)));
-$$('[data-farmer-avatar]').forEach((button) => button.addEventListener("click", () => updateFarmerStyle("avatar", button.dataset.farmerAvatar)));
-$$('[data-farmer-outfit]').forEach((button) => button.addEventListener("click", () => updateFarmerStyle("outfit", button.dataset.farmerOutfit)));
 $$('[data-prev]').forEach((b) => b.addEventListener("click", () => goStep(Number(b.dataset.prev))));
-bindImage("areaImage", "areaPreview", "area", renderFarmGrowth);
+bindImage("areaImage", "areaPreview", "area");
 bindImage("afterImage", "afterPreview", "after");
 $("#removeArea").addEventListener("click", () => { delete state.images.area; $("#areaImage").value = ""; $("#areaPreview").parentElement.classList.remove("has-image"); $("#removeArea").classList.add("hidden"); });
 $("#areaImage").addEventListener("change", () => $("#removeArea").classList.remove("hidden"));
 $("#analyzeArea").addEventListener("click", analyzeArea);
 $("#confirmArea").addEventListener("click", confirmArea);
-$("#nextScenario").addEventListener("click", nextScenario);
-$("#prevScenario").addEventListener("click", () => { if (state.scenario > 0) { state.scenario--; renderScenario(); } });
-$("#speakStep").addEventListener("click", speakStep);
 $("#comparePhotos").addEventListener("click", comparePhotos);
 $("#startNewMission").addEventListener("click", resetMissionForNewArea);
 $("#careArea").addEventListener("change", renderCareSummary);
-$$('input[name="careType"]').forEach((input) => input.addEventListener("change", renderCareSummary));
 $("#finishWithoutPhoto").addEventListener("click", () => { saveHistory({ completed: false, awaitingPhotoVerification: true }); toast("사진 없이 기록만 저장했어요. 기억의 조각은 청소 후 사진 확인 뒤에 남아요."); showView("history"); });
 $("#easyToggle").addEventListener("click", () => { const active = !document.body.classList.contains("easy"); document.body.classList.toggle("easy", active); updateZoomButton(active); write(STORE.settings, { easy: active }); });
 $("#clearHistory").addEventListener("click", () => { if (confirm("저장된 분석 기록을 모두 삭제할까요?")) { write(STORE.history, []); renderHistory(); } });
 $("#completeDaily").addEventListener("click", () => { reward("daily-care", 3, "오늘의 생활 돌봄 미션"); renderDailyMission(); });
-$("#plantSeed").addEventListener("click", plantSeed);
-$("#waterCrop").addEventListener("click", waterCrop);
-$("#rainbowCrop").addEventListener("click", rainbowCrop);
-$("#harvestCrop").addEventListener("click", harvestCrop);
 $("#communityForm").addEventListener("submit", submitCommunityPost);
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());
@@ -1134,5 +1093,5 @@ $("#loginDialog").addEventListener("cancel", (event) => { if (!currentAccount())
 
 if (currentAccount()) startSignedInApp(); else { renderAccount(); openLogin(); }
 setInterval(() => {
-  if ($("#room").classList.contains("active")) renderFarmGrowth();
+  if ($("#room").classList.contains("active")) renderRoom();
 }, 1000);

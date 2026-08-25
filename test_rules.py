@@ -164,7 +164,7 @@ def test_photo_checklist_reuses_the_care_step_reward_and_daily_key() -> None:
     assert "reward(`photo-mission-${pairHash}-${key}`, 3" not in source
 
 
-def test_memory_pieces_are_planted_directly_without_a_seed_shop() -> None:
+def test_memory_pieces_grow_a_single_garden_without_a_seed_shop() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert "기억의 조각" in markup
@@ -172,14 +172,20 @@ def test_memory_pieces_are_planted_directly_without_a_seed_shop() -> None:
     assert "포인트" not in source
     assert 'id="seedShop"' not in markup
     assert 'data-spend-tab="seed"' not in markup
-    assert "const MEMORY_PLANT_COST = 1;" in source
-    assert "spendMemories(`${farm.active}-${Date.now()}`, MEMORY_PLANT_COST" in source
     assert "function buySeed" not in source
     assert "data-buy-seed" not in source
     assert "const LEGACY_SEED_VALUES" in source
     assert "기존 씨앗을 기억의 조각으로 전환" in source
-    assert 'name: "햇살나무"' in source
-    assert 'name: "꽃나무"' in source
+    assert "const GARDEN_STAGES" in source
+    assert "completedGardenMissions" in source
+    assert "기억의 조각 씨앗" in markup
+    assert "새싹" in markup
+    assert "작은 나무" in markup
+    assert "큰 나무" in markup
+    assert "과수원" in markup
+    assert 'data-crop-plot' not in markup
+    assert 'id="plantSeed"' not in markup
+    assert 'id="waterCrop"' not in markup
 
 
 def test_locked_farm_items_do_not_leave_ghost_images() -> None:
@@ -189,10 +195,23 @@ def test_locked_farm_items_do_not_leave_ghost_images() -> None:
     assert ".farm-item{opacity:.12;" not in source
 
 
-def test_farm_house_is_available_from_the_start() -> None:
+def test_single_garden_starts_as_a_plain_vegetable_patch() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
-    assert "cottage: true," in source
-    assert "농부 친구가 농가에서 기다리고 있어요" in source
+    assert 'class="care-room care-farm simple-garden"' in markup
+    assert "텃밭에서 시작해요" in source
+    assert 'class="unlock-list"' not in markup
+    assert 'class="farmer-customizer"' not in markup
+
+
+def test_cleaning_guide_is_shown_on_one_page_without_step_by_step_completion() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert 'id="guideSteps"' in markup
+    assert 'id="nextScenario"' not in markup
+    assert 'id="prevScenario"' not in markup
+    assert 'data-speak-guide-step' in source
+    assert 'guide-step-card' in source
 
 
 def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:
