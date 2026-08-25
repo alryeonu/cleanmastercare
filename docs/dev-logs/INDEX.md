@@ -38,3 +38,4 @@
 - [2026-08-25 · 잠긴 농장 아이템 잔상 제거](2026-08-25-039-hide-locked-farm-ghosts.md)
 - [2026-08-25 · 닉네임 기반 로컬 로그인과 농장 저장](2026-08-25-040-local-nickname-login.md)
 - [2026-08-25 · 기본 농가 유지](2026-08-25-041-default-farmhouse.md)
+- [2026-08-25 · 농장 응원 문구 변경](2026-08-25-042-farm-encouragement-copy.md)

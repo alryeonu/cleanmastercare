@@ -177,6 +177,12 @@ def test_farm_house_is_available_from_the_start() -> None:
     assert "농부 친구가 농가에서 기다리고 있어요" in source
 
 
+def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert "오늘의 작은 돌봄도 충분해요" in markup
+    assert "손가락으로 농장을 둘러보세요" not in markup
+
+
 def test_local_nickname_login_scopes_care_progress_without_storing_photos() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
