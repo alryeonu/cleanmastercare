@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+import server
+
+
+ROOT = Path(__file__).resolve().parent
+
+
+def request_payload(**overrides):
+    payload = {
+        "locale": "ko-KR",
+        "area_hint": "bathroom",
+        "visible_categories": ["clean"],
+        "cleaning_focus": "mold",
+        "user_confirmed": True,
+        "observations": ["검은 점 모양 흔적"],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_api_service_returns_local_release_when_remote_is_unconfigured(monkeypatch) -> None:
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("ENABLE_GROUNDED_GUIDE_LLM", raising=False)
+
+    result = server.create_cleaning_guide(request_payload())
+    assert result["mode"] == "local_fallback"
+    assert result["knowledge_source"] == "local_release_snapshot"
+    assert len(result["steps"]) == 6
+    assert result["stop_rules"]
+    assert result["sources"]
+
+
+def test_api_service_marks_verified_supabase_release_as_canonical(monkeypatch) -> None:
+    monkeypatch.setattr(server, "verify_supabase_route", lambda context: True)
+    monkeypatch.delenv("ENABLE_GROUNDED_GUIDE_LLM", raising=False)
+
+    result = server.create_cleaning_guide(request_payload(cleaning_focus="water_scale"))
+    assert result["mode"] == "canonical"
+    assert result["knowledge_source"] == "supabase_release"
+    assert result["procedure_key"] == "bathroom-water-scale-v1"
+
+
+def test_model_failure_cannot_block_the_api(monkeypatch) -> None:
+    monkeypatch.setattr(server, "verify_supabase_route", lambda context: True)
+    monkeypatch.setenv("ENABLE_GROUNDED_GUIDE_LLM", "true")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-placeholder")
+
+    def fail(context, schema):
+        raise RuntimeError("forced failure")
+
+    monkeypatch.setattr(server, "call_grounded_openai", fail)
+    result = server.create_cleaning_guide(request_payload())
+    assert result["mode"] == "canonical"
+    assert result["steps"]
+
+
+def test_user_confirmation_is_required() -> None:
+    with pytest.raises(ValueError, match="확인이 필요"):
+        server.create_cleaning_guide(request_payload(user_confirmed=False))
+
+
+def test_removed_product_safety_flow_is_absent_from_server_contract() -> None:
+    source = (ROOT / "server.py").read_text(encoding="utf-8")
+    assert '\"cleaner_label\"' not in source
+    assert "def mix_verdict" not in source
+    assert "def material_verdict" not in source
+    assert "def combined_verdict" not in source
+
+
+def test_photo_checklist_reuses_the_care_step_reward_and_daily_key() -> None:
+    source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert "const CARE_STEP_POINTS = 3;" in source
+    assert "안내 미션 한 단계와 같은 +${CARE_STEP_POINTS}P" in source
+    assert "reward(`photo-mission-${key}`, CARE_STEP_POINTS" in source
+    assert "reward(`photo-mission-${pairHash}-${key}`, 3" not in source
+
+
+def test_community_thread_has_comments_without_exposing_a_card_count() -> None:
+    thread = server.community_thread("welcome-tip")
+    assert thread["post"]["title"] == "작은 구역부터 시작해도 충분해요"
+    assert thread["comments"]
+    assert "comment_count" not in thread["post"]
+
+
+def test_community_comment_is_anonymous_and_validated() -> None:
+    comment = server.community_comment("welcome-tip", {"body": "저도 작은 구역부터 시작해볼게요."})
+    assert set(comment) == {"id", "body", "created_at"}
+    with pytest.raises(ValueError, match="2~300자"):
+        server.community_comment("welcome-tip", {"body": "ㅋ"})
+
+
+def test_community_cards_open_a_thread_without_comment_metadata() -> None:
+    source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert 'data-open-post="${escapeHtml(post.id)}"' in source
+    assert "openCommunityThread(card.dataset.openPost)" in source
+    assert "comment_count" not in source

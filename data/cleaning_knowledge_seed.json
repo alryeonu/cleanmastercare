@@ -1,0 +1,447 @@
+{
+  "release_key": "ko-kr-2026-08-001",
+  "locale": "ko-KR",
+  "reviewer_ref": "knowledge-editor-2026-08-25",
+  "reviewed_at": "2026-08-25T06:00:00Z",
+  "spaces": [
+    {"code": "living_room", "label_ko": "거실"},
+    {"code": "kitchen", "label_ko": "주방"},
+    {"code": "bedroom", "label_ko": "침실"},
+    {"code": "entry", "label_ko": "현관"},
+    {"code": "bathroom", "label_ko": "욕실"},
+    {"code": "other", "label_ko": "다른 공간"}
+  ],
+  "targets": [
+    {"code": "desk", "space_code": "living_room", "label_ko": "책상", "aliases_ko": ["작업대", "테이블"]},
+    {"code": "kitchen_sink", "space_code": "kitchen", "label_ko": "싱크대", "aliases_ko": ["싱크볼", "개수대"]},
+    {"code": "sofa", "space_code": "living_room", "label_ko": "소파", "aliases_ko": ["쇼파"]},
+    {"code": "bed", "space_code": "bedroom", "label_ko": "침대와 침구", "aliases_ko": ["매트리스", "침구"]},
+    {"code": "shoe_cabinet", "space_code": "entry", "label_ko": "신발장", "aliases_ko": ["현관 수납장"]},
+    {"code": "bathroom_general", "space_code": "bathroom", "label_ko": "욕실 물세척 가능 표면", "aliases_ko": ["타일", "세면대", "욕조"]},
+    {"code": "kitchen_general", "space_code": "kitchen", "label_ko": "주방 일반 표면", "aliases_ko": ["조리대", "상판"]},
+    {"code": "other_surface", "space_code": "other", "label_ko": "확인한 일반 표면", "aliases_ko": ["다른 공간"]}
+  ],
+  "parts": [
+    {"code": "drain_strainer", "target_code": "kitchen_sink", "label_ko": "배수구 거름망", "aliases_ko": ["음식물 거름망"]},
+    {"code": "faucet", "target_code": "kitchen_sink", "label_ko": "수전 외부", "aliases_ko": ["수도꼭지"]},
+    {"code": "desk_top", "target_code": "desk", "label_ko": "책상 상판", "aliases_ko": ["책상 위"]},
+    {"code": "sofa_surface", "target_code": "sofa", "label_ko": "소파 표면과 접근 가능한 틈", "aliases_ko": ["쿠션 틈"]},
+    {"code": "bed_frame", "target_code": "bed", "label_ko": "침대 프레임과 접근 가능한 주변", "aliases_ko": ["침대 틈"]},
+    {"code": "shoe_shelf", "target_code": "shoe_cabinet", "label_ko": "신발장 선반", "aliases_ko": ["신발 선반"]},
+    {"code": "wet_surface", "target_code": "bathroom_general", "label_ko": "물로 헹굴 수 있는 단단한 표면", "aliases_ko": ["욕실 타일", "세면대"]},
+    {"code": "cooktop", "target_code": "kitchen_general", "label_ko": "열이 식은 조리 상판", "aliases_ko": ["가스레인지 상판", "인덕션 상판"]}
+  ],
+  "care_tasks": [
+    {"code": "organize", "label_ko": "정리"},
+    {"code": "clean", "label_ko": "청소"},
+    {"code": "laundry", "label_ko": "세탁"}
+  ],
+  "focuses": [
+    {"code": "water_scale", "label_ko": "물때·광물 자국", "search_terms_ko": ["하얀 자국", "물자국", "수전 물때"]},
+    {"code": "soap_scum", "label_ko": "비누막", "search_terms_ko": ["뿌연 막", "비누 찌꺼기"]},
+    {"code": "grease", "label_ko": "기름때", "search_terms_ko": ["끈적임", "조리 기름"]},
+    {"code": "dust", "label_ko": "먼지·부스러기", "search_terms_ko": ["마른 먼지", "부스러기"]},
+    {"code": "clutter", "label_ko": "물건 정리", "search_terms_ko": ["뒤섞인 물건", "제자리"]},
+    {"code": "laundry", "label_ko": "세탁할 천·의류", "search_terms_ko": ["세탁물", "침구"]},
+    {"code": "mold", "label_ko": "곰팡이 추정 흔적", "search_terms_ko": ["검은 점", "번짐", "곰팡이"]},
+    {"code": "unknown", "label_ko": "확인 필요", "search_terms_ko": ["종류 미확인"]}
+  ],
+  "aliases": [
+    {"namespace": "area_hint", "input_code": "desk", "space_code": "living_room", "target_code": "desk"},
+    {"namespace": "area_hint", "input_code": "sink", "space_code": "kitchen", "target_code": "kitchen_sink"},
+    {"namespace": "area_hint", "input_code": "sofa", "space_code": "living_room", "target_code": "sofa"},
+    {"namespace": "area_hint", "input_code": "bed", "space_code": "bedroom", "target_code": "bed"},
+    {"namespace": "area_hint", "input_code": "shoe_rack", "space_code": "entry", "target_code": "shoe_cabinet"},
+    {"namespace": "area_hint", "input_code": "bathroom", "space_code": "bathroom", "target_code": "bathroom_general"},
+    {"namespace": "area_hint", "input_code": "kitchen", "space_code": "kitchen", "target_code": "kitchen_general"},
+    {"namespace": "area_hint", "input_code": "other", "space_code": "other", "target_code": "other_surface"},
+    {"namespace": "visible_category", "input_code": "organize", "care_task_code": "organize"},
+    {"namespace": "visible_category", "input_code": "clean", "care_task_code": "clean"},
+    {"namespace": "visible_category", "input_code": "laundry", "care_task_code": "laundry"},
+    {"namespace": "cleaning_focus", "input_code": "water_scale", "focus_code": "water_scale"},
+    {"namespace": "cleaning_focus", "input_code": "soap_scum", "focus_code": "soap_scum"},
+    {"namespace": "cleaning_focus", "input_code": "grease", "focus_code": "grease"},
+    {"namespace": "cleaning_focus", "input_code": "dust", "focus_code": "dust"},
+    {"namespace": "cleaning_focus", "input_code": "clutter", "focus_code": "clutter"},
+    {"namespace": "cleaning_focus", "input_code": "laundry", "focus_code": "laundry"},
+    {"namespace": "cleaning_focus", "input_code": "mold", "focus_code": "mold"},
+    {"namespace": "cleaning_focus", "input_code": "unknown", "focus_code": "unknown"}
+  ],
+  "sources": [
+    {
+      "key": "cdc_home_cleaning",
+      "url": "https://www.cdc.gov/hygiene/about/when-and-how-to-clean-and-disinfect-your-home.html",
+      "publisher": "미국 질병통제예방센터(CDC)",
+      "source_kind": "government",
+      "title": "When and How to Clean and Disinfect Your Home",
+      "source_date": "2025-01-31",
+      "locale": "en-US",
+      "evidence_summary": "일반 표면의 눈에 보이는 오염을 먼저 제거하고, 부드러운 표면·세탁물·전자기기는 공식 관리 지침을 따르며 완전히 건조하도록 안내한다."
+    },
+    {
+      "key": "cdc_mold_cleanup",
+      "url": "https://www.cdc.gov/mold-health/about/clean-up.html",
+      "publisher": "미국 질병통제예방센터(CDC)",
+      "source_kind": "government",
+      "title": "Mold Clean Up Guidelines and Recommendations",
+      "source_date": "2024-02-16",
+      "locale": "en-US",
+      "evidence_summary": "곰팡이 청소 시 환기하고 장갑과 눈 보호구를 착용하며, 노출을 줄이고 작업 범위를 확인하도록 안내한다."
+    },
+    {
+      "key": "epa_mold_home",
+      "url": "https://www.epa.gov/mold/mold-cleanup-your-home",
+      "publisher": "미국 환경보호청(EPA)",
+      "source_kind": "government",
+      "title": "Mold Cleanup in Your Home",
+      "locale": "en-US",
+      "evidence_summary": "단단한 표면의 곰팡이는 닦은 뒤 완전히 말리고, 누수·수분 문제를 해결하며, 다공성 물건이나 불확실한 경우 전문 도움을 고려하도록 안내한다."
+    },
+    {
+      "key": "aci_home_routine",
+      "url": "https://www.cleaninginstitute.org/cleaning-tips/clean-home/home-cleaning-routine",
+      "publisher": "American Cleaning Institute",
+      "source_kind": "standards_body",
+      "title": "Home Cleaning Routine",
+      "source_date": "2026-04-28",
+      "locale": "en-US",
+      "evidence_summary": "도구를 한곳에 모으고 한 작업에 집중하며, 욕실·주방 표면을 건조하게 유지하고 세탁 라벨을 따르는 기본 루틴을 안내한다."
+    },
+    {
+      "key": "aci_hard_surfaces",
+      "url": "https://www.cleaninginstitute.org/cleaning-tips/cleaning-hard-surfaces",
+      "publisher": "American Cleaning Institute",
+      "source_kind": "standards_body",
+      "title": "Cleaning Hard Surfaces",
+      "locale": "en-US",
+      "evidence_summary": "단단한 표면은 비연마 도구로 부드럽게 닦고 깨끗한 물로 마무리해 부드러운 천으로 건조하며, 가전은 전원을 분리하도록 안내한다."
+    },
+    {
+      "key": "me_indoor_air",
+      "url": "https://me.go.kr/home/web/board/read.do?boardId=1497330&boardMasterId=713&menuId=10392",
+      "publisher": "기후에너지환경부",
+      "source_kind": "government",
+      "title": "실내공기질 이렇게 관리하세요",
+      "locale": "ko-KR",
+      "evidence_summary": "물걸레로 가라앉은 먼지를 제거하고 곰팡이를 관리하며, 조리 중·후 환기와 공기 설비 관리를 권고한다."
+    },
+    {
+      "key": "lh_home_ventilation",
+      "url": "https://heri.lh.or.kr/housing/viewMenu?housingmenuid=001&menuid=001009001",
+      "publisher": "LH 토지주택연구원 APT-hi",
+      "source_kind": "public_agency",
+      "title": "공동주택 주방·욕실 배기와 환기 안내",
+      "locale": "ko-KR",
+      "evidence_summary": "주방·욕실 오염 공기는 배기팬으로 밖으로 내보내고, 필터가 기름때로 막히면 상태 확인과 세척이 필요하다고 설명한다."
+    },
+    {
+      "key": "lg_gas_range",
+      "url": "https://www.lge.co.kr/support/solutions-1418623130664",
+      "publisher": "LG전자",
+      "source_kind": "manufacturer",
+      "title": "가스레인지 청소를 어떻게 하나요?",
+      "source_date": "2026-05-29",
+      "locale": "ko-KR",
+      "evidence_summary": "가스레인지 부품과 상판은 열이 식은 뒤 청소하고, 세척한 부품을 충분히 헹구고 완전히 건조해 조립하도록 안내한다."
+    },
+    {
+      "key": "lg_induction",
+      "url": "https://www.lge.co.kr/support/solutions-20152789862413",
+      "publisher": "LG전자",
+      "source_kind": "manufacturer",
+      "title": "디오스 인덕션 화이트 상판 청소방법",
+      "source_date": "2026-05-29",
+      "locale": "ko-KR",
+      "evidence_summary": "전원을 끄고 상판 열이 식은 것을 확인하며, 연마성이 강한 도구를 피하고 마른 천으로 잔여물을 마무리하도록 안내한다."
+    }
+  ],
+  "risks": [
+    {
+      "key": "stop_surface_change",
+      "trigger_code": "surface_change_or_unknown",
+      "user_action": "표면이 벗겨지거나 색이 달라 보이거나 손상 징후가 생기면 바로 멈추고, 확인 가능한 관리 안내가 있을 때만 다시 진행해요.",
+      "escalation_target": "관리 설명서 또는 전문 도움",
+      "required_phrases": ["멈추"],
+      "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]
+    },
+    {
+      "key": "electrical_power_off",
+      "trigger_code": "electrical_device_nearby",
+      "user_action": "전자기기와 전기 조리기구 주변은 전원을 끄고 충분히 식힌 뒤, 물이 틈으로 흐르지 않게 작업해요.",
+      "escalation_target": "제품 공식 설명서",
+      "required_phrases": ["전원을 끄"],
+      "source_keys": ["aci_hard_surfaces", "lg_induction"]
+    },
+    {
+      "key": "hot_surface_cool",
+      "trigger_code": "hot_cooktop",
+      "user_action": "조리 상판과 분리 가능한 부품은 전원을 끄고 열이 완전히 식은 것을 확인한 뒤 만져요.",
+      "escalation_target": "제품 공식 설명서",
+      "required_phrases": ["열이 완전히 식"],
+      "source_keys": ["lg_gas_range", "lg_induction"]
+    },
+    {
+      "key": "mold_protect_and_ventilate",
+      "trigger_code": "mold_observation_path",
+      "user_action": "곰팡이 추정 흔적을 닦기 전 문과 창을 열고 환풍기를 켜며 장갑과 눈 보호구를 착용해요. 환기가 되지 않거나 자극이 느껴지면 바로 중단해요.",
+      "escalation_target": "공공 안전 안내 또는 전문 도움",
+      "required_phrases": ["환기", "장갑", "눈 보호구", "중단"],
+      "source_keys": ["cdc_mold_cleanup"]
+    },
+    {
+      "key": "mold_large_or_repeat",
+      "trigger_code": "mold_large_repeat_or_porosity",
+      "user_action": "흔적이 넓거나 반복되고, 벽 안쪽·흡수성 재료까지 번졌거나 누수가 계속되면 직접 작업을 멈추고 관리 주체나 전문 도움을 요청해요.",
+      "escalation_target": "건물 관리 주체 또는 곰팡이·누수 전문 서비스",
+      "required_phrases": ["전문 도움"],
+      "source_keys": ["epa_mold_home", "cdc_mold_cleanup"]
+    },
+    {
+      "key": "leak_or_backup_stop",
+      "trigger_code": "active_leak_or_drain_backup",
+      "user_action": "물이 계속 새거나 배수구가 역류하면 닦는 작업보다 사용을 멈추고 누수·배수 문제를 먼저 점검받아요.",
+      "escalation_target": "건물 관리 주체 또는 배관 전문 서비스",
+      "required_phrases": ["사용을 멈추"],
+      "source_keys": ["epa_mold_home"]
+    }
+  ],
+  "procedures": [
+    {
+      "key": "desk-clean-v1",
+      "title": "책상 상판과 전자기기 주변 청소",
+      "summary": "전원을 먼저 정리하고 마른 먼지부터 걷은 뒤, 상판을 작은 면씩 닦아 완전히 말려요.",
+      "routes": [{"space_code": "living_room", "target_code": "desk", "care_task_code": "clean", "priority": 10, "specificity": 2}],
+      "risk_keys": ["electrical_power_off", "stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "도구와 작업 범위를 준비해요.", "detail": "마른 부드러운 천, 물기를 꼭 짤 수 있는 천과 작은 바구니를 옆에 두고 책상 한 구역만 정해요.", "completion_cue": "닦을 한 구역과 도구가 준비됐어요.", "caution": "한 번에 책상 전체를 비우지 않아도 괜찮아요.", "source_keys": ["aci_home_routine"]},
+        {"stage_code": "protect", "instruction": "전자기기 전원을 끄고 선을 치워요.", "detail": "노트북·모니터·충전기의 전원을 끄고 가능한 선을 분리해 액체가 닿지 않는 곳으로 옮겨요.", "completion_cue": "전원이 꺼지고 닦을 면에서 선이 떨어져 있어요.", "caution": "전자기기 틈으로 물이 흐르지 않게 해요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "preclean", "instruction": "큰 물건과 마른 먼지를 먼저 걷어요.", "detail": "남길 물건을 바구니에 잠시 옮기고 마른 천으로 부스러기와 먼지를 한쪽으로 모아 버려요.", "completion_cue": "상판에 큰 물건과 느슨한 먼지가 남지 않았어요.", "caution": null, "source_keys": ["aci_home_routine", "me_indoor_air"]},
+        {"stage_code": "act", "instruction": "물기를 꼭 짠 천으로 작은 면씩 닦아요.", "detail": "눈에 잘 띄지 않는 작은 곳부터 한 방향으로 닦고, 얼룩이 번지면 깨끗한 천 면으로 바꿔요.", "completion_cue": "선택한 구역의 보이는 먼지와 자국이 닦였어요.", "caution": "색이 달라지거나 표면이 벗겨지면 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "마른 천으로 물기를 없애고 기기를 돌려놓아요.", "detail": "상판과 가장자리를 마른 천으로 닦고 완전히 마른 것을 확인한 뒤 전자기기와 선을 제자리에 둬요.", "completion_cue": "상판이 마르고 전자기기 주변에 물기가 없어요.", "caution": null, "source_keys": ["aci_hard_surfaces"]}
+      ]
+    },
+    {
+      "key": "sink-strainer-clean-v1",
+      "title": "싱크대 거름망과 싱크볼 청소",
+      "summary": "거름망의 찌꺼기를 먼저 비우고 망 안팎을 부드럽게 닦아 헹군 뒤 완전히 말려요.",
+      "routes": [
+        {"space_code": "kitchen", "target_code": "kitchen_sink", "care_task_code": "clean", "focus_code": "unknown", "priority": 20, "specificity": 3, "is_fallback": true},
+        {"space_code": "kitchen", "target_code": "kitchen_sink", "part_code": "drain_strainer", "care_task_code": "clean", "focus_code": "unknown", "priority": 5, "specificity": 4}
+      ],
+      "risk_keys": ["leak_or_backup_stop", "stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "장갑과 봉투, 부드러운 작은 솔을 준비해요.", "detail": "싱크대 사용을 잠시 멈추고 장갑, 음식물 봉투, 부드러운 솔, 깨끗한 물과 마른 천을 가까이 둬요.", "completion_cue": "싱크대 물이 멈추고 준비물이 손에 닿아요.", "caution": "배수구 역류나 누수가 보이면 작업을 멈춰요.", "source_keys": ["cdc_home_cleaning", "epa_mold_home"]},
+        {"stage_code": "preclean", "instruction": "싱크볼의 그릇과 큰 찌꺼기를 먼저 치워요.", "detail": "식기는 다른 곳에 두고 손으로 집을 수 있는 큰 찌꺼기는 봉투에 버려 배수구로 밀어 넣지 않아요.", "completion_cue": "싱크볼과 거름망 주변에 큰 찌꺼기가 없어요.", "caution": "날카로운 조각이 의심되면 손으로 만지지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "act", "instruction": "거름망을 들어 찌꺼기를 비워요.", "detail": "거름망을 천천히 들어 봉투 위에서 뒤집고, 망 구멍에 남은 찌꺼기는 부드러운 솔로 바깥쪽부터 떼어내요.", "completion_cue": "망 구멍을 막던 눈에 보이는 찌꺼기가 없어졌어요.", "caution": "억지로 분해해야 하는 부품은 건드리지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "act", "instruction": "거름망 안팎과 테두리를 미지근한 물로 닦아요.", "detail": "미지근한 물에 적신 부드러운 솔로 안쪽·바깥쪽·테두리를 나눠 짧게 문지르고, 싱크볼의 보이는 자국도 부드러운 천으로 닦아요.", "completion_cue": "거름망 안팎과 테두리에 느슨한 잔여물이 없어요.", "caution": "금속 수세미나 날카로운 도구는 쓰지 않아요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물로 망 구멍과 싱크볼을 충분히 헹궈요.", "detail": "거름망을 돌려가며 망 구멍 사이에 닦인 잔여물이 남지 않을 때까지 헹구고 싱크볼도 깨끗한 물로 마무리해요.", "completion_cue": "거름망과 싱크볼에 닦인 잔여물이 보이지 않아요.", "caution": null, "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "물기를 닦고 거름망을 제자리에 놓아요.", "detail": "거름망과 싱크볼 가장자리의 물기를 마른 천으로 닦고, 거름망이 흔들리지 않게 원래 위치에 놓아요.", "completion_cue": "거름망이 제자리에 있고 주변 물기가 제거됐어요.", "caution": null, "source_keys": ["aci_home_routine", "aci_hard_surfaces"]}
+      ]
+    },
+    {
+      "key": "sink-water-scale-v1",
+      "title": "싱크대 수전의 물때 추정 흔적 청소",
+      "summary": "수전 외부의 느슨한 먼지를 걷고 미지근한 물로 불린 뒤 부드럽게 닦아 물기를 남기지 않아요.",
+      "routes": [{"space_code": "kitchen", "target_code": "kitchen_sink", "care_task_code": "clean", "focus_code": "water_scale", "priority": 5, "specificity": 4}],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "부드러운 천 두 장과 미지근한 물을 준비해요.", "detail": "젖은 천과 마른 천을 나누고 수전 주변 물건을 치워 손이 닿는 작은 면부터 시작해요.", "completion_cue": "수전 주변이 비고 젖은 천과 마른 천이 준비됐어요.", "caution": null, "source_keys": ["aci_home_routine", "aci_hard_surfaces"]},
+        {"stage_code": "preclean", "instruction": "마른 천으로 느슨한 먼지와 물기를 먼저 걷어요.", "detail": "수전의 위쪽부터 아래쪽으로 가볍게 닦아 표면에 남은 먼지와 물방울을 제거해요.", "completion_cue": "수전에 느슨한 먼지와 고인 물방울이 없어요.", "caution": null, "source_keys": ["me_indoor_air", "aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "미지근한 물에 적신 천을 물때 위에 잠시 올려요.", "detail": "천의 물기를 짠 뒤 하얀 자국이 보이는 작은 면을 덮어 굳은 흔적이 부드러워지게 해요.", "completion_cue": "천이 자국을 덮고 물이 주변으로 흐르지 않아요.", "caution": "코팅 여부를 모르면 눈에 띄지 않는 작은 곳부터 확인해요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "부드러워진 자국을 천의 깨끗한 면으로 닦아요.", "detail": "강하게 긁지 말고 짧게 여러 번 닦으며, 자국이 천에 묻으면 깨끗한 면으로 바꿔요.", "completion_cue": "선택한 작은 면의 느슨해진 자국이 닦였어요.", "caution": "표면 변화가 보이면 더 문지르지 않아요.", "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물을 묻힌 새 천으로 한 번 더 닦아요.", "detail": "수전 연결부에 물이 흐르지 않도록 천의 물기를 꼭 짜고 닦은 면을 고르게 훑어요.", "completion_cue": "닦은 면에 보이는 잔여물이 없어요.", "caution": null, "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "마른 천으로 수전과 주변 물기를 완전히 제거해요.", "detail": "수전 본체와 밑동, 싱크대 가장자리를 눌러 닦아 물방울이 남지 않게 해요.", "completion_cue": "수전 외부와 밑동이 마른 상태예요.", "caution": null, "source_keys": ["aci_home_routine", "aci_hard_surfaces"]}
+      ]
+    },
+    {
+      "key": "soft-surface-sofa-v1",
+      "title": "소파 표면과 접근 가능한 틈 청소",
+      "summary": "관리 라벨을 먼저 확인하고 쿠션 틈의 마른 먼지를 제거한 뒤 허용된 범위만 작은 곳부터 닦아요.",
+      "routes": [{"space_code": "living_room", "target_code": "sofa", "care_task_code": "clean", "priority": 10, "specificity": 2}],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "소파 관리 라벨과 분리 가능한 커버를 확인해요.", "detail": "라벨에서 세탁·물 사용 가능 여부를 확인하고, 확인되지 않으면 먼저 마른 청소 범위만 진행해요.", "completion_cue": "관리 라벨을 확인했거나 마른 청소만 하기로 정했어요.", "caution": "재질을 사진만 보고 추정하지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "preclean", "instruction": "소파 위 물건과 쿠션을 잠시 옮겨요.", "detail": "리모컨·책·담요를 제자리에 두고 쿠션은 순서를 기억할 수 있게 가까운 곳에 세워요.", "completion_cue": "좌석과 접근 가능한 틈이 보여요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "act", "instruction": "틈과 표면의 마른 먼지를 천천히 제거해요.", "detail": "청소기 틈새 도구나 부드러운 브러시를 사용해 쿠션 아래와 봉제선 방향으로 먼지를 걷어요.", "completion_cue": "보이는 부스러기와 느슨한 먼지가 줄었어요.", "caution": "천을 잡아당기거나 틈 안쪽을 억지로 분해하지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "act", "instruction": "라벨이 허용한 경우에만 작은 곳부터 닦아요.", "detail": "물 사용이 허용된 커버라면 물기를 꼭 짠 천으로 눈에 띄지 않는 곳을 먼저 눌러 닦고 번짐을 확인해요.", "completion_cue": "작은 시험 구역에 번짐이나 색 변화가 없어요.", "caution": "색이 묻어나오면 바로 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "완전히 마른 뒤 쿠션을 돌려놓아요.", "detail": "젖은 부분이 있다면 공기가 통하게 두고, 만졌을 때 습기가 없어진 뒤 쿠션과 담요를 제자리에 놓아요.", "completion_cue": "소파가 마르고 쿠션이 제자리에 있어요.", "caution": null, "source_keys": ["cdc_home_cleaning"]}
+      ]
+    },
+    {
+      "key": "bed-area-clean-v1",
+      "title": "침대 주변과 프레임 청소",
+      "summary": "침구를 분리하고 접근 가능한 틈의 먼지를 제거한 뒤 프레임을 마른 방식부터 정리해요.",
+      "routes": [{"space_code": "bedroom", "target_code": "bed", "care_task_code": "clean", "priority": 10, "specificity": 2}],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "침대 위 물건과 침구를 구분해요.", "detail": "전자기기와 책은 제자리에 두고, 세탁할 침구는 라벨을 확인하며 바구니에 따로 모아요.", "completion_cue": "침대 위에는 청소할 면만 남았어요.", "caution": null, "source_keys": ["cdc_home_cleaning", "aci_home_routine"]},
+        {"stage_code": "preclean", "instruction": "창문을 열거나 환기하며 마른 먼지를 확인해요.", "detail": "프레임 모서리와 침대 아래 접근 가능한 구역을 눈으로 확인하고 큰 물건부터 꺼내요.", "completion_cue": "접근 가능한 모서리와 바닥이 보여요.", "caution": "무거운 침대를 혼자 옮기지 않아요.", "source_keys": ["aci_home_routine", "me_indoor_air"]},
+        {"stage_code": "act", "instruction": "청소기나 부드러운 브러시로 먼지를 걷어요.", "detail": "매트리스 표면, 프레임 틈, 침대 아래 가장자리 순으로 천천히 이동하며 마른 먼지를 제거해요.", "completion_cue": "보이는 먼지와 부스러기가 제거됐어요.", "caution": "매트리스 관리 라벨과 다른 습식 청소를 추가하지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "act", "instruction": "프레임은 마른 부드러운 천부터 사용해요.", "detail": "재질 관리 방법을 모르면 마른 천으로 한 방향씩 닦고, 물 사용은 공식 관리 안내가 확인될 때만 해요.", "completion_cue": "프레임의 느슨한 먼지가 닦였어요.", "caution": "도장이나 코팅 변화가 보이면 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "finish", "instruction": "청소 도구를 비우고 마른 침구만 돌려놓아요.", "detail": "먼지통과 브러시를 정리하고, 세탁한 침구는 완전히 마른 뒤 다시 깔아요.", "completion_cue": "침대 주변이 정리되고 젖은 침구가 남지 않았어요.", "caution": null, "source_keys": ["cdc_home_cleaning"]}
+      ]
+    },
+    {
+      "key": "shoe-cabinet-clean-v1",
+      "title": "신발장 선반과 현관 먼지 청소",
+      "summary": "신발을 구역별로 꺼내고 모래와 먼지를 먼저 걷은 뒤 선반을 작은 면씩 닦아 말려요.",
+      "routes": [{"space_code": "entry", "target_code": "shoe_cabinet", "care_task_code": "clean", "priority": 10, "specificity": 2}],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "문이 닫히지 않게 고정하고 한 선반만 정해요.", "detail": "통로를 막지 않는 위치에 신발을 둘 종이나 바구니를 펴고 가장 아래 또는 위 선반 하나부터 시작해요.", "completion_cue": "청소할 한 선반과 임시 신발 자리가 정해졌어요.", "caution": "현관 통로와 문 앞을 막지 않아요.", "source_keys": ["aci_home_routine"]},
+        {"stage_code": "preclean", "instruction": "신발을 짝별로 꺼내 상태를 확인해요.", "detail": "자주 신는 것과 보관할 것을 나누고 젖은 신발은 선반에 다시 넣지 말고 통풍되는 곳에 따로 둬요.", "completion_cue": "선반이 비고 젖은 신발이 분리됐어요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "act", "instruction": "마른 솔이나 천으로 모래와 먼지를 먼저 걷어요.", "detail": "선반 안쪽에서 바깥쪽으로 움직이며 모래를 한곳에 모아 봉투에 버려요.", "completion_cue": "선반에 느슨한 모래와 먼지가 없어요.", "caution": "먼지를 공중으로 세게 털지 않아요.", "source_keys": ["me_indoor_air", "aci_home_routine"]},
+        {"stage_code": "act", "instruction": "물기를 꼭 짠 천으로 작은 면부터 닦아요.", "detail": "눈에 띄지 않는 모서리를 먼저 닦고 이상이 없으면 선반 전체를 한 방향으로 닦아요.", "completion_cue": "선반 표면의 보이는 자국이 닦였어요.", "caution": "표면이 부풀거나 색이 변하면 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "문을 열어 선반을 완전히 말린 뒤 신발을 넣어요.", "detail": "마른 천으로 모서리 물기를 닦고 습기가 없어진 것을 확인한 뒤 자주 신는 신발부터 제자리에 둬요.", "completion_cue": "선반이 마르고 신발이 통로를 막지 않아요.", "caution": null, "source_keys": ["aci_home_routine"]}
+      ]
+    },
+    {
+      "key": "bathroom-general-clean-v1",
+      "title": "욕실 기본 청소",
+      "summary": "환기하고 큰 이물질을 제거한 뒤 물로 헹굴 수 있는 표면을 위에서 아래로 닦고 충분히 말려요.",
+      "routes": [{"space_code": "bathroom", "target_code": "bathroom_general", "care_task_code": "clean", "focus_code": "unknown", "priority": 30, "specificity": 3, "is_fallback": true}],
+      "risk_keys": ["leak_or_backup_stop", "stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "문을 열고 환풍기를 켜요.", "detail": "욕실 문이나 창을 열고 배기팬을 켠 뒤 바닥의 미끄러운 물건과 청소에 방해되는 용품을 치워요.", "completion_cue": "환기가 시작되고 이동 경로가 비었어요.", "caution": "젖은 바닥에서 서두르지 않아요.", "source_keys": ["me_indoor_air", "lh_home_ventilation"]},
+        {"stage_code": "protect", "instruction": "장갑을 끼고 물에 젖으면 안 되는 물건을 밖으로 옮겨요.", "detail": "수건·휴대기기·전기용품을 욕실 밖에 두고, 장갑과 부드러운 천·솔을 준비해요.", "completion_cue": "전기용품이 밖에 있고 장갑을 착용했어요.", "caution": null, "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "preclean", "instruction": "머리카락과 큰 이물질부터 제거해요.", "detail": "바닥과 배수구 덮개 주변의 머리카락·휴지를 집어 봉투에 버리고 배수구로 밀어 넣지 않아요.", "completion_cue": "바닥과 배수구 주변에 큰 이물질이 없어요.", "caution": "배수구 역류가 보이면 사용을 멈춰요.", "source_keys": ["cdc_home_cleaning", "epa_mold_home"]},
+        {"stage_code": "act", "instruction": "미지근한 물로 작은 구역부터 부드럽게 닦아요.", "detail": "물로 헹굴 수 있는 단단한 표면을 위쪽에서 아래쪽 순서로 나누고, 물에 적신 부드러운 천이나 솔로 보이는 자국을 닦아요.", "completion_cue": "선택한 한 구역의 보이는 자국이 닦였어요.", "caution": "표면 변화가 보이면 더 문지르지 않아요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물로 닦은 구역을 충분히 헹궈요.", "detail": "위쪽에서 아래쪽으로 물을 흘려 느슨해진 잔여물이 남지 않게 해요.", "completion_cue": "닦은 구역에 느슨한 잔여물이 보이지 않아요.", "caution": "물이 전기 설비나 문밖으로 흐르지 않게 해요.", "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "물기를 제거하고 환기를 이어가요.", "detail": "스퀴지나 마른 천으로 벽·수전·바닥 가장자리의 물기를 제거하고 표면이 마를 때까지 환풍기를 켜 둬요.", "completion_cue": "고인 물이 없고 표면이 마르기 시작했어요.", "caution": null, "source_keys": ["aci_home_routine", "me_indoor_air", "lh_home_ventilation"]}
+      ]
+    },
+    {
+      "key": "bathroom-water-scale-v1",
+      "title": "욕실 물때 추정 흔적 청소",
+      "summary": "환기와 보호를 먼저 하고 미지근한 물로 흔적을 불린 뒤 부드럽게 닦고 헹궈 완전히 말려요.",
+      "routes": [{"space_code": "bathroom", "target_code": "bathroom_general", "care_task_code": "clean", "focus_code": "water_scale", "priority": 5, "specificity": 4}],
+      "risk_keys": ["stop_surface_change", "leak_or_backup_stop"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "문을 열고 환풍기를 켠 뒤 작은 구역을 정해요.", "detail": "욕실 전체가 아니라 수전이나 타일 한 면처럼 물때가 보이는 작은 구역 하나를 선택해요.", "completion_cue": "환기가 시작되고 작업 구역이 정해졌어요.", "caution": null, "source_keys": ["me_indoor_air", "lh_home_ventilation", "aci_home_routine"]},
+        {"stage_code": "protect", "instruction": "장갑을 끼고 부드러운 천 두 장을 준비해요.", "detail": "미지근한 물에 적실 천과 마지막에 말릴 천을 구분해 두고 거친 수세미는 치워요.", "completion_cue": "장갑과 젖은 천·마른 천이 준비됐어요.", "caution": "연마 도구를 사용하지 않아요.", "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "미지근한 물에 적신 천으로 흔적을 불려요.", "detail": "천의 물기를 짜서 하얀 물자국 위에 잠시 올리고 주변으로 물이 흐르지 않게 해요.", "completion_cue": "젖은 천이 선택한 흔적만 덮고 있어요.", "caution": "코팅 여부를 모르면 작은 곳부터 확인해요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "부드러워진 자국을 작은 원이나 한 방향으로 닦아요.", "detail": "강하게 긁지 말고 천의 깨끗한 면을 바꿔가며 선택한 구역을 짧게 여러 번 닦아요.", "completion_cue": "느슨해진 물때가 천에 묻어나고 표면 변화가 없어요.", "caution": "벗겨짐이나 변색이 보이면 멈춰요.", "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물로 닦은 구역을 헹궈요.", "detail": "새 천에 깨끗한 물을 묻혀 잔여물이 없게 닦거나, 물로 헹굴 수 있는 면은 위에서 아래로 가볍게 헹궈요.", "completion_cue": "닦인 잔여물이 보이지 않아요.", "caution": null, "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "마른 천으로 물기를 제거하고 환기를 계속해요.", "detail": "수전 밑동·타일 모서리·줄눈 주변의 물기를 눌러 닦고 완전히 마를 때까지 환기해요.", "completion_cue": "선택한 구역에 고인 물이 없어요.", "caution": null, "source_keys": ["aci_home_routine", "me_indoor_air"]}
+      ]
+    },
+    {
+      "key": "bathroom-soap-scum-v1",
+      "title": "욕실 비누 찌꺼기 추정 흔적 청소",
+      "summary": "비누막을 미지근한 물로 부드럽게 만든 뒤 비연마 도구로 닦고 헹궈 건조해요.",
+      "routes": [{"space_code": "bathroom", "target_code": "bathroom_general", "care_task_code": "clean", "focus_code": "soap_scum", "priority": 5, "specificity": 4}],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "환기하고 비누막이 보이는 작은 구역을 정해요.", "detail": "샤워 벽이나 세면대 한쪽처럼 뿌연 흔적이 보이는 곳 하나만 선택하고 주변 용품을 치워요.", "completion_cue": "환기가 시작되고 작은 작업 구역이 비었어요.", "caution": null, "source_keys": ["me_indoor_air", "lh_home_ventilation"]},
+        {"stage_code": "protect", "instruction": "장갑과 부드러운 천·솔을 준비해요.", "detail": "표면을 긁을 수 있는 금속·거친 수세미는 치우고 물기를 닦을 마른 천을 따로 둬요.", "completion_cue": "장갑과 비연마 도구가 준비됐어요.", "caution": null, "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "미지근한 물로 뿌연 흔적을 먼저 불려요.", "detail": "물기를 짠 부드러운 천을 흔적 위에 올리거나 표면을 가볍게 적셔 마른 비누막을 부드럽게 해요.", "completion_cue": "흔적이 젖고 주변으로 물이 흐르지 않아요.", "caution": null, "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "act", "instruction": "미지근한 물로 작은 면씩 부드럽게 닦아요.", "detail": "물에 적신 천이나 부드러운 솔로 뿌연 막을 짧게 여러 번 닦고, 닦인 잔여물이 퍼지면 도구를 깨끗이 헹궈요.", "completion_cue": "선택한 면의 느슨한 비누막이 닦였어요.", "caution": "표면 변화가 보이면 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물로 잔여물을 충분히 헹궈요.", "detail": "위에서 아래로 헹구며 모서리와 틈에 닦인 잔여물이 남지 않았는지 확인해요.", "completion_cue": "닦인 잔여물이 보이지 않아요.", "caution": null, "source_keys": ["aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "물기를 제거하고 표면을 완전히 말려요.", "detail": "스퀴지나 마른 천으로 물기를 닦고 샤워문이나 커튼을 열어 공기가 통하게 둬요.", "completion_cue": "고인 물이 없고 표면이 마르고 있어요.", "caution": null, "source_keys": ["aci_home_routine"]}
+      ]
+    },
+    {
+      "key": "bathroom-mold-v1",
+      "title": "욕실 곰팡이 추정 흔적 청소",
+      "summary": "사용자가 작은 범위의 곰팡이 추정 흔적을 확인한 경우, 환기·보호구·작은 범위 작업·헹굼·완전 건조를 지키며 6단계로 진행해요.",
+      "routes": [{"space_code": "bathroom", "target_code": "bathroom_general", "care_task_code": "clean", "focus_code": "mold", "priority": 1, "specificity": 5}],
+      "risk_keys": ["mold_protect_and_ventilate", "mold_large_or_repeat", "leak_or_backup_stop"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "문과 창을 열고 환풍기를 켜요.", "detail": "신선한 공기가 들어오고 욕실 공기가 밖으로 빠져나가게 환기한 뒤 작업 구역을 작게 정해요.", "completion_cue": "문이나 창이 열리고 환풍기가 작동해요.", "caution": "환기가 되지 않거나 자극이 느껴지면 작업을 시작하지 않아요.", "source_keys": ["cdc_mold_cleanup", "lh_home_ventilation"]},
+        {"stage_code": "protect", "instruction": "장갑과 눈 보호구를 착용하고 주변 물건을 치워요.", "detail": "피부와 눈을 보호하고, 수건과 욕실 용품을 작업 구역 밖으로 옮겨 작은 흔적만 보이게 해요.", "completion_cue": "장갑과 눈 보호구를 착용했고 작은 작업 구역이 비었어요.", "caution": "보호구가 없으면 직접 닦기보다 전문 도움을 선택해요.", "source_keys": ["cdc_mold_cleanup"]},
+        {"stage_code": "preclean", "instruction": "미지근한 물에 적신 부드러운 천을 작은 흔적 위에 올려요.", "detail": "천의 물기를 짠 뒤 사용자가 확인한 작은 단단한 표면만 덮고 주변으로 물이 흐르지 않게 해요.", "completion_cue": "젖은 천이 확인한 작은 흔적만 덮고 있어요.", "caution": "흡수성 재료나 벽 안쪽으로 번진 흔적은 직접 닦지 않아요.", "source_keys": ["cdc_mold_cleanup", "epa_mold_home"]},
+        {"stage_code": "act", "instruction": "부드러운 천으로 작은 구역씩 닦아요.", "detail": "강하게 문지르지 말고 천의 깨끗한 면을 바꿔가며 물로 헹굴 수 있는 단단한 표면만 닦아요.", "completion_cue": "선택한 작은 구역의 느슨한 흔적이 천에 묻어났어요.", "caution": "자극이 느껴지거나 흔적이 넓게 이어지면 바로 중단해요.", "source_keys": ["epa_mold_home", "cdc_mold_cleanup"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물로 닦은 구역을 충분히 헹궈요.", "detail": "새 천에 깨끗한 물을 묻혀 닦거나, 물로 헹굴 수 있는 표면은 위에서 아래로 가볍게 헹궈 닦인 잔여물을 제거해요.", "completion_cue": "닦인 잔여물이 보이지 않아요.", "caution": "다른 방법을 추가하지 않아요.", "source_keys": ["epa_mold_home", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "물기를 제거하고 완전히 건조해요.", "detail": "마른 천이나 스퀴지로 물기를 제거하고 환기를 계속해요. 흔적이 넓거나 반복되거나 흡수성 재료로 번졌다면 직접 작업을 멈추고 전문 도움을 받아요.", "completion_cue": "고인 물이 없고 작업 구역이 마르고 있어요.", "caution": "누수나 반복 원인이 남아 있으면 청소만 반복하지 않아요.", "source_keys": ["epa_mold_home", "cdc_mold_cleanup", "aci_home_routine"]}
+      ]
+    },
+    {
+      "key": "kitchen-grease-v1",
+      "title": "주방 조리 상판의 기름때 추정 흔적 청소",
+      "summary": "전원을 끄고 열을 식힌 뒤 큰 부스러기를 제거하고, 공식 관리 안내 범위에서 작은 면씩 닦아 완전히 말려요.",
+      "routes": [{"space_code": "kitchen", "target_code": "kitchen_general", "care_task_code": "clean", "focus_code": "grease", "priority": 5, "specificity": 4}],
+      "risk_keys": ["electrical_power_off", "hot_surface_cool", "stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "조리기구 전원을 끄고 열이 완전히 식을 때까지 기다려요.", "detail": "불꽃과 전원이 꺼졌는지 확인하고 손을 가까이 대도 열기가 느껴지지 않을 때만 청소를 시작해요.", "completion_cue": "전원이 꺼지고 상판과 부품의 열이 식었어요.", "caution": "뜨거운 상판을 젖은 천으로 닦지 않아요.", "source_keys": ["lg_gas_range", "lg_induction"]},
+        {"stage_code": "protect", "instruction": "제품의 공식 관리 안내와 장갑을 확인해요.", "detail": "모델 설명서에서 분리 가능한 부품과 허용된 도구를 확인하고, 확인되지 않은 부품은 억지로 빼지 않아요.", "completion_cue": "청소 가능한 범위와 사용할 부드러운 도구가 정해졌어요.", "caution": "사진만 보고 상판 재질이나 도구 적합성을 판단하지 않아요.", "source_keys": ["cdc_home_cleaning", "lg_gas_range", "lg_induction"]},
+        {"stage_code": "preclean", "instruction": "굳지 않은 음식물과 큰 부스러기를 먼저 걷어요.", "detail": "마른 천이나 부드러운 도구로 상판의 큰 조각을 모아 버리고 조작부 틈으로 밀어 넣지 않아요.", "completion_cue": "상판에 큰 부스러기가 남지 않았어요.", "caution": null, "source_keys": ["aci_home_routine", "lg_induction"]},
+        {"stage_code": "act", "instruction": "공식 관리 안내 범위에서 작은 면씩 닦아요.", "detail": "물기를 꼭 짠 부드러운 천부터 사용하고, 기름이 묻으면 천의 깨끗한 면으로 바꿔 한 방향씩 닦아요.", "completion_cue": "선택한 작은 면의 느슨한 기름막이 닦였어요.", "caution": "연마성이 강한 도구와 확인되지 않은 제품을 추가하지 않아요.", "source_keys": ["cdc_home_cleaning", "lg_induction"]},
+        {"stage_code": "rinse", "instruction": "깨끗한 물을 묻힌 천으로 닦은 면을 마무리해요.", "detail": "식품이 닿는 주변은 깨끗한 물을 묻혀 꼭 짠 새 천으로 보이는 잔여물이 없게 닦아요.", "completion_cue": "닦인 잔여물이 보이지 않아요.", "caution": "액체가 조작부나 틈으로 흐르지 않게 해요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "dry", "instruction": "마른 천으로 물기를 닦고 부품을 완전히 말려요.", "detail": "상판과 분리해 씻은 공식 세척 가능 부품을 완전히 건조한 뒤 원래 위치에 조립해요.", "completion_cue": "상판과 부품이 마르고 원래 위치에 있어요.", "caution": null, "source_keys": ["lg_gas_range", "lg_induction"]}
+      ]
+    },
+    {
+      "key": "generic-surface-clean-v1",
+      "title": "확인한 일반 표면 청소",
+      "summary": "큰 먼지를 먼저 제거하고 관리 안내가 확인된 범위에서 작은 면부터 닦아 건조해요.",
+      "routes": [
+        {"space_code": "other", "target_code": "other_surface", "care_task_code": "clean", "priority": 100, "specificity": 1, "is_fallback": true},
+        {"space_code": "kitchen", "target_code": "kitchen_general", "care_task_code": "clean", "focus_code": "unknown", "priority": 100, "specificity": 2, "is_fallback": true}
+      ],
+      "risk_keys": ["stop_surface_change"],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "청소할 작은 구역과 부드러운 도구를 정해요.", "detail": "표면 한 면만 선택하고 마른 천, 물기를 꼭 짤 천과 쓰레기봉투를 준비해요.", "completion_cue": "작업 구역과 도구가 정해졌어요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "protect", "instruction": "표면과 주변 물건의 관리 안내를 확인해요.", "detail": "전자기기·도장·코팅처럼 물 사용이 불확실하면 마른 청소만 진행해요.", "completion_cue": "물 사용 가능 여부를 확인했거나 마른 방식으로 정했어요.", "caution": "재질을 사진만 보고 추정하지 않아요.", "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "preclean", "instruction": "큰 물건과 마른 먼지를 먼저 치워요.", "detail": "큰 부스러기는 봉투에 버리고 느슨한 먼지는 마른 천으로 한곳에 모아요.", "completion_cue": "닦을 면에 큰 물건과 느슨한 먼지가 없어요.", "caution": null, "source_keys": ["me_indoor_air", "aci_home_routine"]},
+        {"stage_code": "act", "instruction": "허용된 범위에서 작은 곳부터 부드럽게 닦아요.", "detail": "물 사용이 가능한 경우에만 물기를 꼭 짠 천으로 눈에 띄지 않는 곳부터 한 방향씩 닦아요.", "completion_cue": "작은 시험 구역에 표면 변화가 없고 보이는 자국이 닦였어요.", "caution": "색 변화나 벗겨짐이 보이면 멈춰요.", "source_keys": ["cdc_home_cleaning", "aci_hard_surfaces"]},
+        {"stage_code": "dry", "instruction": "물기와 남은 부스러기를 제거해요.", "detail": "마른 천으로 가장자리까지 닦고 사용한 도구와 옮긴 물건을 정리해요.", "completion_cue": "표면이 마르고 작업 구역이 정리됐어요.", "caution": null, "source_keys": ["aci_hard_surfaces", "aci_home_routine"]}
+      ]
+    },
+    {
+      "key": "generic-organize-v1",
+      "title": "한 구역 물건 정리",
+      "summary": "통로를 지키며 남길 것·옮길 것·내보낼 것을 나누고 지금 쓰는 물건부터 제자리에 둬요.",
+      "routes": [
+        {"space_code": "living_room", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "kitchen", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "bedroom", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "entry", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "bathroom", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "other", "care_task_code": "organize", "priority": 100, "specificity": 0, "is_fallback": true}
+      ],
+      "risk_keys": [],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "바구니 세 개와 한 구역을 정해요.", "detail": "남길 것, 다른 곳으로 옮길 것, 버리거나 재활용할 것을 담을 자리를 만들어요.", "completion_cue": "세 분류 자리와 작업할 한 구역이 정해졌어요.", "caution": "통로와 출입문 앞은 비워 둬요.", "source_keys": ["aci_home_routine"]},
+        {"stage_code": "act", "instruction": "눈앞의 물건을 세 갈래로 하나씩 나눠요.", "detail": "결정을 오래 고민하지 말고 망설여지는 물건은 남길 것 바구니 한쪽에 임시로 둬요.", "completion_cue": "선택한 구역의 물건이 세 분류 안에 들어갔어요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "act", "instruction": "오늘 쓰는 물건부터 손 닿는 자리에 둬요.", "detail": "자주 쓰는 것만 가까운 곳에 두고 나머지는 이름이 맞는 수납 위치로 옮겨요.", "completion_cue": "지금 쓰는 물건이 한눈에 보여요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "finish", "instruction": "옮길 것과 내보낼 것을 한 번에 처리해요.", "detail": "다른 방 물건은 바구니째 옮기고 쓰레기와 재활용은 정해진 배출 위치로 이동해요.", "completion_cue": "분류 바구니가 작업 구역에 남아 있지 않아요.", "caution": "무거운 상자를 혼자 한 번에 들지 않아요.", "source_keys": ["aci_home_routine"]},
+        {"stage_code": "finish", "instruction": "비워진 면과 통로를 확인해요.", "detail": "바닥과 문 앞에 걸리는 물건이 없는지 보고, 다음 구역은 새 미션으로 남겨요.", "completion_cue": "선택한 한 구역과 통로가 정리됐어요.", "caution": null, "source_keys": ["aci_home_routine"]}
+      ]
+    },
+    {
+      "key": "generic-laundry-v1",
+      "title": "세탁할 천과 침구 정리",
+      "summary": "세탁 라벨을 확인해 분리하고 권장 방법으로 세탁한 뒤 완전히 말려 제자리에 둬요.",
+      "routes": [
+        {"space_code": "living_room", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "kitchen", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "bedroom", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "entry", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "bathroom", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true},
+        {"space_code": "other", "care_task_code": "laundry", "priority": 100, "specificity": 0, "is_fallback": true}
+      ],
+      "risk_keys": [],
+      "steps": [
+        {"stage_code": "prepare", "instruction": "세탁할 천·의류·침구만 한곳에 모아요.", "detail": "주머니와 이물질을 확인하고 젖은 것과 마른 것을 섞어 오래 두지 않아요.", "completion_cue": "세탁 대상만 바구니에 모였어요.", "caution": null, "source_keys": ["cdc_home_cleaning", "aci_home_routine"]},
+        {"stage_code": "protect", "instruction": "각 물건의 세탁 라벨을 확인해요.", "detail": "물세탁·손세탁·드라이클리닝과 건조 표시를 보고, 라벨이 없거나 불확실한 것은 따로 둬요.", "completion_cue": "라벨을 확인한 것과 확인이 필요한 것이 분리됐어요.", "caution": "라벨을 모르면 임의로 세탁하지 않아요.", "source_keys": ["cdc_home_cleaning", "aci_home_routine"]},
+        {"stage_code": "act", "instruction": "색상과 라벨 방법이 비슷한 것끼리 나눠요.", "detail": "색이 빠질 수 있는 것, 섬세한 것, 수건·행주처럼 용도가 다른 것을 구분해요.", "completion_cue": "함께 세탁할 묶음이 정해졌어요.", "caution": null, "source_keys": ["aci_home_routine"]},
+        {"stage_code": "act", "instruction": "라벨의 세탁 방법과 권장 물 온도를 따라요.", "detail": "세탁기나 손세탁 방법을 라벨대로 선택하고 한 번에 너무 많이 넣지 않아요.", "completion_cue": "라벨에 맞는 방법으로 세탁이 끝났어요.", "caution": null, "source_keys": ["cdc_home_cleaning"]},
+        {"stage_code": "dry", "instruction": "완전히 말린 뒤 제자리에 둬요.", "detail": "라벨의 건조 방법을 따르고 습기가 남지 않은 것을 확인한 뒤 수납해요. 세탁 바구니도 비워 닦아요.", "completion_cue": "세탁물이 완전히 마르고 바구니가 비었어요.", "caution": null, "source_keys": ["cdc_home_cleaning"]}
+      ]
+    }
+  ],
+  "tips": [
+    {"key": "one-zone-only", "procedure_key": "desk-clean-v1", "step_no": 1, "space_code": "living_room", "target_code": "desk", "care_task_code": "clean", "stage_code": "prepare", "tip_text": "책상 전체보다 노트북 한 대 크기만 먼저 비우면 다음 행동이 선명해져요.", "search_text": "책상 한 구역 작은 범위 준비", "tags": ["small_step", "kr_one_room"], "source_keys": ["aci_home_routine"]},
+    {"key": "strainer-turn-and-check", "procedure_key": "sink-strainer-clean-v1", "step_no": 4, "space_code": "kitchen", "target_code": "kitchen_sink", "part_code": "drain_strainer", "care_task_code": "clean", "stage_code": "act", "tip_text": "거름망을 한 바퀴 돌려 보며 안쪽·바깥쪽·테두리를 나눠 확인하면 빠뜨린 면을 찾기 쉬워요.", "search_text": "싱크대 거름망 망 안쪽 바깥쪽 테두리", "tags": ["built_in_kitchen", "drain_strainer"], "source_keys": ["cdc_home_cleaning"]},
+    {"key": "faucet-dry-after-use", "procedure_key": "sink-water-scale-v1", "step_no": 6, "space_code": "kitchen", "target_code": "kitchen_sink", "part_code": "faucet", "care_task_code": "clean", "focus_code": "water_scale", "stage_code": "dry", "tip_text": "수전 사용 뒤 밑동의 물방울만 짧게 닦아도 다음 물자국을 줄이는 데 도움이 돼요.", "search_text": "수전 물때 물방울 밑동 건조", "tags": ["water_scale", "dry"], "source_keys": ["aci_hard_surfaces"]},
+    {"key": "sofa-seam-direction", "procedure_key": "soft-surface-sofa-v1", "step_no": 3, "space_code": "living_room", "target_code": "sofa", "part_code": "sofa_surface", "care_task_code": "clean", "stage_code": "act", "tip_text": "봉제선을 따라 천천히 움직이면 쿠션 틈의 부스러기를 표면 밖으로 모으기 쉬워요.", "search_text": "소파 쿠션 틈 봉제선 먼지 부스러기", "tags": ["soft_surface", "vacuum"], "source_keys": ["cdc_home_cleaning"]},
+    {"key": "bed-dry-laundry", "procedure_key": "bed-area-clean-v1", "step_no": 5, "space_code": "bedroom", "target_code": "bed", "care_task_code": "clean", "stage_code": "finish", "tip_text": "세탁한 침구는 겹친 안쪽까지 습기가 없는지 확인한 뒤 침대에 다시 깔아요.", "search_text": "침구 세탁 완전 건조 습기", "tags": ["bed", "laundry", "dry"], "source_keys": ["cdc_home_cleaning"]},
+    {"key": "shoe-cabinet-air-dry", "procedure_key": "shoe-cabinet-clean-v1", "step_no": 5, "space_code": "entry", "target_code": "shoe_cabinet", "part_code": "shoe_shelf", "care_task_code": "clean", "stage_code": "dry", "tip_text": "선반 모서리를 만졌을 때 습기가 없어진 뒤 문을 닫으면 젖은 상태로 신발을 넣는 일을 피할 수 있어요.", "search_text": "신발장 선반 모서리 완전 건조", "tags": ["entry", "dry"], "source_keys": ["aci_home_routine"]},
+    {"key": "bathroom-top-down", "procedure_key": "bathroom-general-clean-v1", "step_no": 4, "space_code": "bathroom", "target_code": "bathroom_general", "part_code": "wet_surface", "care_task_code": "clean", "stage_code": "act", "tip_text": "벽이나 수전 위쪽을 먼저 닦고 바닥을 마지막에 하면 이미 닦은 곳을 다시 밟는 일을 줄일 수 있어요.", "search_text": "욕실 위에서 아래 바닥 마지막", "tags": ["korean_wet_room", "workflow"], "source_keys": ["aci_home_routine", "aci_hard_surfaces"]},
+    {"key": "wet-room-dry-edges", "procedure_key": "bathroom-water-scale-v1", "step_no": 6, "space_code": "bathroom", "target_code": "bathroom_general", "part_code": "wet_surface", "care_task_code": "clean", "focus_code": "water_scale", "stage_code": "dry", "tip_text": "수전 밑동과 타일 모서리처럼 물이 남기 쉬운 가장자리부터 마른 천으로 눌러 닦아요.", "search_text": "욕실 물때 수전 밑동 타일 모서리 건조", "tags": ["korean_wet_room", "water_scale", "dry"], "source_keys": ["aci_home_routine"]},
+    {"key": "soap-scum-rinse-tools", "procedure_key": "bathroom-soap-scum-v1", "step_no": 4, "space_code": "bathroom", "target_code": "bathroom_general", "part_code": "wet_surface", "care_task_code": "clean", "focus_code": "soap_scum", "stage_code": "act", "tip_text": "천이나 솔에 뿌연 잔여물이 많이 묻으면 깨끗한 물에 먼저 헹군 뒤 다음 작은 면을 닦아요.", "search_text": "욕실 비누막 천 솔 헹구기 작은 면", "tags": ["soap_scum", "korean_wet_room"], "source_keys": ["aci_hard_surfaces"]},
+    {"key": "mold-fix-moisture", "procedure_key": "bathroom-mold-v1", "step_no": 6, "space_code": "bathroom", "target_code": "bathroom_general", "part_code": "wet_surface", "care_task_code": "clean", "focus_code": "mold", "stage_code": "dry", "tip_text": "곰팡이 흔적을 닦은 뒤에도 누수·고인 물·환기 문제를 함께 확인해야 반복 원인을 줄일 수 있어요.", "search_text": "욕실 곰팡이 누수 고인 물 환기 반복", "tags": ["mold", "moisture", "stop_rule"], "source_keys": ["epa_mold_home", "cdc_mold_cleanup"]},
+    {"key": "cooktop-clean-cloth-face", "procedure_key": "kitchen-grease-v1", "step_no": 4, "space_code": "kitchen", "target_code": "kitchen_general", "part_code": "cooktop", "care_task_code": "clean", "focus_code": "grease", "stage_code": "act", "tip_text": "기름이 묻은 천 면을 계속 쓰지 말고 깨끗한 면으로 접어 바꿔가며 작은 구역을 닦아요.", "search_text": "주방 상판 기름때 천 깨끗한 면 작은 구역", "tags": ["grease", "cooktop"], "source_keys": ["cdc_home_cleaning", "lg_induction"]},
+    {"key": "laundry-check-inner-fold", "procedure_key": "generic-laundry-v1", "step_no": 5, "space_code": "bedroom", "target_code": "bed", "care_task_code": "laundry", "stage_code": "dry", "tip_text": "두꺼운 침구는 접힌 안쪽과 가장자리까지 습기가 없는지 확인한 뒤 수납해요.", "search_text": "침구 두꺼운 세탁물 접힌 안쪽 완전 건조", "tags": ["laundry", "dry"], "source_keys": ["cdc_home_cleaning"]}
+  ]
+}

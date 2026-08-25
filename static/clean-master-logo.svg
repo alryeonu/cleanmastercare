@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">청소의 고수 캐릭터 얼굴</title>
+  <defs>
+    <radialGradient id="face" cx="32%" cy="23%" r="80%">
+      <stop offset="0" stop-color="#c7f0d5"/>
+      <stop offset=".55" stop-color="#83c89b"/>
+      <stop offset="1" stop-color="#559d70"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="url(#face)"/>
+  <ellipse cx="43" cy="49" rx="5.5" ry="8.5" fill="#263c42"/>
+  <ellipse cx="77" cy="49" rx="5.5" ry="8.5" fill="#263c42"/>
+  <circle cx="41.4" cy="46.2" r="1.6" fill="#fff" opacity=".78"/>
+  <circle cx="75.4" cy="46.2" r="1.6" fill="#fff" opacity=".78"/>
+  <ellipse cx="28" cy="67" rx="8.5" ry="4.2" fill="#ff9a91"/>
+  <ellipse cx="92" cy="67" rx="8.5" ry="4.2" fill="#ff9a91"/>
+  <path d="M49 69c2.4 11.5 19.6 11.5 22 0" fill="none" stroke="#263c42" stroke-width="5" stroke-linecap="round"/>
+</svg>

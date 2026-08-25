@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 120" role="img" aria-labelledby="title">
+  <title id="title">OLIVE YOUNG</title>
+  <rect x="4" y="4" width="212" height="112" rx="22" fill="#9cc44a"/>
+  <circle cx="48" cy="60" r="22" fill="#fff"/>
+  <path d="M39 60l7 7 14-16" fill="none" stroke="#9cc44a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="83" y="54" fill="#fff" font-family="Arial,sans-serif" font-size="24" font-weight="700">OLIVE</text>
+  <text x="83" y="82" fill="#fff" font-family="Arial,sans-serif" font-size="24" font-weight="700">YOUNG</text>
+</svg>
