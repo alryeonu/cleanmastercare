@@ -8,7 +8,7 @@
 - AI 분석이 지연되거나 실패하면 주간 계획 안에서 공간을 직접 고를 수 있는 선택지를 표시하고 기본 안내로 계속한다.
 - `cleaning_area` 분석은 OpenAI 저해상도 이미지 입력과 low reasoning을 사용하고, 서버 측 요청 제한은 25초로 낮췄다.
 - 분석 오류는 API 키나 내부 세부 정보를 노출하지 않는 읽을 수 있는 JSON 오류로 반환한다.
-- Vercel의 실제 Python 진입 파일 `server.py`를 `functions` 설정으로 지정하고 `maxDuration: 60`을 설정했다.
+- Vercel 서비스 안의 Python 함수 glob(`**/*.py`, `server.py` 포함)에 `maxDuration: 60`을 설정했다.
 
 ## 문제·막힌 지점
 
