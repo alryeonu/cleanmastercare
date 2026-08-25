@@ -222,18 +222,34 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert "photoMarkup" in script
     assert 'alt="${label} 미리보기"' in script
-    assert 'guide.steps.slice(0, 6)' in script
+    assert 'guide.steps.slice(0, planMode === "easy" ? 2 : 6)' in script
     assert 'SUPABASE CLEANING GUIDE' in script
     assert 'id="gardenSparkles"' in markup
     assert "state.gardenCelebration = true" in script
     assert 'showView("room")' in script
-    assert "coupang" not in script.lower()
+    assert "PRODUCT_CATALOG" in (ROOT / "static" / "product-links.js").read_text(encoding="utf-8")
+
+
+def test_weekly_plan_modes_keep_the_guide_and_gate_product_recommendations() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    catalog = (ROOT / "static" / "product-links.js").read_text(encoding="utf-8")
+    assert 'data-plan-mode="easy"' in markup
+    assert 'data-plan-mode="normal"' in markup
+    assert 'data-live-plan-mode="easy"' in markup
+    assert 'data-live-plan-mode="normal"' in markup
+    assert 'planMode === "easy" ? 2 : 6' in script
+    assert 'planMode === "normal" ? productCards' in script
+    assert 'id="planMaterial"' in script
+    assert "PRODUCT_CATALOG" in catalog
+    assert "coupang.com/np/search?q=" in script
+    assert "염소계 제품은 산성세제·식초·구연산·암모니아 제품과 절대 섞지 마세요." in catalog
 
 
 def test_care_history_shows_date_item_mode_encouragement_and_after_thumbnail() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'modeLabel: "일반 모드"' in script
-    assert 'modeLabel: "주간 돌봄"' in script
+    assert 'modeLabel: planMode === "easy" ? "주간 돌봄 · EASY" : "주간 돌봄 · NORMAL"' in script
     assert "history-record-card" in script
     assert "encouragement" in script
     assert "afterPhotoThumbnail" in script

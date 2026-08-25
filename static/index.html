@@ -67,8 +67,8 @@
 
     <section class="page shell" id="mission">
       <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">WEEKLY CARE PLAN</span><h1>이번 주 돌봄 계획</h1><p>처음 한 번만 관리할 곳을 고르면, 부담 없는 한 가지씩 7일 계획으로 나눠드려요.</p></div></div>
-      <section id="planSetup" class="plan-setup card"><span class="kicker">FIRST SETUP</span><h2>어느 곳을 꾸준히 돌보고 싶나요?</h2><p>2~5곳을 고르면 한 주에 한 가지씩 고르게 배치해요. 언제든 다시 만들 수 있어요.</p><div id="planAreaCards" class="plan-area-cards" aria-label="돌봄 장소 선택"></div><button id="saveWeeklyPlan" class="primary">이번 주 계획 만들기</button></section>
-      <section id="weeklyTracker" class="weekly-tracker hidden"><div class="tracker-head"><div><span class="kicker">THIS WEEK</span><h2 id="weeklyTitle">이번 주 작은 계획</h2></div><button id="resetWeeklyPlan" class="text-button">장소 다시 고르기</button></div><div id="weeklyCalendar" class="weekly-calendar" aria-label="이번 주 청소 계획표"></div><article id="todayPlanCard" class="today-plan-card card"></article></section>
+      <section id="planSetup" class="plan-setup card"><span class="kicker">FIRST SETUP</span><h2>어느 곳을 꾸준히 돌보고 싶나요?</h2><p>2~5곳을 고르면 한 주에 한 가지씩 고르게 배치해요. 언제든 다시 만들 수 있어요.</p><div id="planAreaCards" class="plan-area-cards" aria-label="돌봄 장소 선택"></div><div class="plan-mode-select" role="group" aria-label="청소 모드 선택"><span>청소 모드</span><button type="button" data-plan-mode="easy" aria-pressed="false">EASY<small>가벼운 행동 1~2개</small></button><button type="button" data-plan-mode="normal" aria-pressed="true">NORMAL<small>상세 안내와 제품 참고</small></button></div><button id="saveWeeklyPlan" class="primary">이번 주 계획 만들기</button></section>
+      <section id="weeklyTracker" class="weekly-tracker hidden"><div class="tracker-head"><div><span class="kicker">THIS WEEK</span><h2 id="weeklyTitle">이번 주 작은 계획</h2></div><button id="resetWeeklyPlan" class="text-button">장소 다시 고르기</button></div><div id="livePlanMode" class="plan-mode-live" role="group" aria-label="청소 모드 선택"><span>청소 모드</span><button type="button" data-live-plan-mode="easy">EASY</button><button type="button" data-live-plan-mode="normal">NORMAL</button></div><div id="weeklyCalendar" class="weekly-calendar" aria-label="이번 주 청소 계획표"></div><article id="todayPlanCard" class="today-plan-card card"></article></section>
     </section>
 
     <section class="page shell" id="room">
@@ -139,6 +139,7 @@
   <nav class="bottom-nav five-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>▦</span>이번 주</button><button data-view="room"><span>🌱</span>텃밭</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기록·기억</button></nav>
   <div id="loading" class="loading hidden" role="status" aria-live="polite"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><div id="loadingProgress" class="loading-progress" role="progressbar" aria-label="사진 확인 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b id="loadingProgressBar"></b></div><small id="loadingPercent">0% · 잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/app.js?v=weekly-guide12"></script>
+  <script src="/assets/product-links.js?v=weekly-guide13"></script>
+  <script src="/assets/app.js?v=weekly-guide13"></script>
 </body>
 </html>

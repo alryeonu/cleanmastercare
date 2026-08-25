@@ -34,7 +34,7 @@ const LABELS = {
 };
 const CARE_STEP_MEMORY = 3;
 const MEMORY_PLANT_COST = 1;
-const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false };
+const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planMaterial: "hard_surface", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false };
 
 const DECOR_ITEMS = [
   { id: "scarecrow", icon: "🌾", title: "밀짚 허수아비", body: "사람 캐릭터와 헷갈리지 않는 볏짚 표식이에요.", cost: 15 },
@@ -1114,6 +1114,13 @@ const PLAN_TASKS = {
   sofa: "소파 위 물건을 제자리에 두고 쿠션 정돈하기",
   shoe_rack: "현관 신발 한 켤레와 바닥 주변 정리하기",
 };
+const PLAN_MATERIALS = {
+  hard_surface: "단단한 표면 (타일·금속·도자기)",
+  coated_surface: "코팅·도장 표면",
+  natural_stone: "천연석",
+  wood: "원목·목재",
+  fabric: "패브릭·천",
+};
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
 function mondayKey(date = new Date()) {
@@ -1123,9 +1130,9 @@ function mondayKey(date = new Date()) {
   return copy.toLocaleDateString("en-CA");
 }
 function planDate(weekStart, index) { const date = new Date(`${weekStart}T12:00:00`); date.setDate(date.getDate() + index); return date.toLocaleDateString("en-CA"); }
-function createWeeklyPlan(areas) {
+function createWeeklyPlan(areas, mode = state.planMode) {
   const weekStart = mondayKey();
-  return { weekStart, areas, tasks: DAY_LABELS.map((day, index) => {
+  return { weekStart, areas, mode: mode === "easy" ? "easy" : "normal", tasks: DAY_LABELS.map((day, index) => {
     const area = areas[index % areas.length];
     return { date: planDate(weekStart, index), day, area, task: PLAN_TASKS[area] };
   }) };
@@ -1140,6 +1147,16 @@ function activeWeeklyPlan() {
 }
 function todayPlan(plan = activeWeeklyPlan()) { return plan?.tasks.find((task) => task.date === today()) || plan?.tasks[0]; }
 function planRecord(task) { return read(STORE.history, []).find((record) => record.id === `weekly-${task.date}`); }
+function weeklyProducts(area, focus, material) {
+  const catalog = globalThis.PRODUCT_CATALOG || {};
+  const byArea = material === "fabric" ? catalog.fabric : catalog[area === "kitchen" ? "sink" : area];
+  return (byArea?.[focus] || byArea?.default || catalog.default || []).slice(0, 3);
+}
+function productCards(area, focus, material) {
+  const products = weeklyProducts(area, focus, material);
+  if (!products.length) return "";
+  return `<section class="product-recommendations"><span class="kicker">AI 제품 추천</span><h3>사진 관찰 후보와 선택한 표면을 바탕으로 참고해보세요</h3><p class="product-disclaimer">제품 추천은 참고용이에요. 제품 라벨과 표면 제조사 안내를 먼저 확인하세요.</p><div class="product-card-grid">${products.map((product) => `<article class="product-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)} 제품 사진" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="product-image-fallback" hidden aria-hidden="true">🧼</span><div><span class="product-type">${escapeHtml(product.type)}</span><h4>${escapeHtml(product.name)}</h4><p>${escapeHtml(product.purpose)}</p><aside><b>안전 주의</b>${escapeHtml(product.caution)}</aside><a class="product-link" href="https://www.coupang.com/np/search?q=${encodeURIComponent(product.query)}" target="_blank" rel="noopener noreferrer">쿠팡에서 보기 <span aria-hidden="true">↗</span></a></div></article>`).join("")}</div></section>`;
+}
 function renderWeeklyPlan() {
   const setup = $("#planSetup"), tracker = $("#weeklyTracker");
   if (!setup || !tracker) return;
@@ -1154,9 +1171,30 @@ function renderWeeklyPlan() {
       state.planAreas = state.planAreas.includes(area) ? state.planAreas.filter((item) => item !== area) : [...state.planAreas, area];
       renderWeeklyPlan();
     }));
+    $$('[data-plan-mode]').forEach((button) => button.addEventListener("click", () => {
+      state.planMode = button.dataset.planMode === "easy" ? "easy" : "normal";
+      renderWeeklyPlan();
+    }));
+    $$('[data-plan-mode]').forEach((button) => {
+      const selected = button.dataset.planMode === state.planMode;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
     return;
   }
   const current = todayPlan(plan);
+  const planMode = plan.mode === "easy" ? "easy" : "normal";
+  $$('[data-live-plan-mode]').forEach((button) => {
+    const selected = button.dataset.livePlanMode === planMode;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+    button.onclick = () => {
+      const nextMode = button.dataset.livePlanMode === "easy" ? "easy" : "normal";
+      if (nextMode === planMode) return;
+      write(STORE.weeklyPlan, { ...plan, mode: nextMode });
+      renderWeeklyPlan();
+    };
+  });
   $("#weeklyTitle").textContent = `${new Date(`${plan.weekStart}T12:00:00`).getMonth() + 1}월의 작은 계획`;
   $("#weeklyCalendar").innerHTML = plan.tasks.map((task) => {
     const done = !!planRecord(task)?.plannedCompleted;
@@ -1169,11 +1207,13 @@ function renderWeeklyPlan() {
   const guideSource = guide?.mode === "local_fallback" ? "BASIC CARE GUIDE" : "SUPABASE CLEANING GUIDE";
   const guideIntro = guide?.mode === "local_fallback" ? "연결 상태와 관계없이 이어갈 수 있는 기본 절차예요." : "Supabase에서 조회한 검수된 절차를 순서대로 안내해요.";
   const detectedNote = guide?.detected ? `<p class="plan-detected">사진에서 <b>${LABELS.area[guideArea]}</b> 후보를 관찰해 이 공간의 절차를 안내해요.</p>` : "";
-  const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">PHOTO PLACE CHECK</span><h3>${LABELS.area[current.area]} 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 오늘 돌볼 장소 단서를 확인하기 어려워요.")} 오늘 계획인 ${LABELS.area[current.area]}이(가) 보이도록 한 장을 다시 올려주세요.</p></section>` : guide ? `<section class="plan-guide"><span class="kicker">${guideSource}</span><h3>${LABELS.area[guideArea]} 청소 절차</h3>${detectedNote}<p>${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.</p><ol>${guide.steps.slice(0, 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">사진이 오늘의 ${LABELS.area[current.area]}인지 확인하고 있어요.</p>` : "";
+  const materialMarkup = guide && !guide.invalidPhoto && planMode === "normal" ? `<label class="weekly-material"><span>확인한 표면 재질</span><select id="planMaterial">${Object.entries(PLAN_MATERIALS).map(([value, label]) => `<option value="${value}" ${value === state.planMaterial ? "selected" : ""}>${label}</option>`).join("")}</select><small>재질은 사진 분석 결과가 아니라 사용자가 직접 선택해요.</small></label>` : "";
+  const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">PHOTO PLACE CHECK</span><h3>${LABELS.area[current.area]} 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 오늘 돌볼 장소 단서를 확인하기 어려워요.")} 오늘 계획인 ${LABELS.area[current.area]}이(가) 보이도록 한 장을 다시 올려주세요.</p></section>` : guide ? `<section class="plan-guide ${planMode === "easy" ? "easy-guide" : ""}"><span class="kicker">${planMode === "easy" ? "EASY CARE GUIDE" : guideSource}</span><h3>${LABELS.area[guideArea]} ${planMode === "easy" ? "가벼운 청소 행동" : "청소 절차"}</h3>${detectedNote}<p>${planMode === "easy" ? "오늘은 부담 없는 한두 가지만 해도 충분해요." : `${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.`}</p><ol>${guide.steps.slice(0, planMode === "easy" ? 2 : 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>${materialMarkup}${planMode === "normal" ? productCards(guideArea, guide.focus || "unknown", state.planMaterial) : ""}` : state.planPhoto ? `<p class="plan-guide-loading">사진이 오늘의 ${LABELS.area[current.area]}인지 확인하고 있어요.</p>` : "";
   const photoMarkup = (data, label) => data ? `<img src="${data}" alt="${label} 미리보기">` : "";
   $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${(done || guide?.invalidPhoto) ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : guide?.invalidPhoto ? "욕실 사진을 다시 등록해주세요" : "개선 확인하고 텃밭 보기"}</button></div>`;
   $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); state.planGuide = null; state.planDetected = null; renderWeeklyPlan(); await analyzeWeeklyPhotoAndLoadGuide(current); } catch (error) { toast(error.message); } });
   $("#planAfterPhotoInput").addEventListener("change", async (event) => { try { state.planAfterPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
+  $("#planMaterial")?.addEventListener("change", (event) => { state.planMaterial = event.target.value; renderWeeklyPlan(); });
   $("#completePlanTask").addEventListener("click", () => completePlanTask(current));
 }
 async function analyzeWeeklyPhotoAndLoadGuide(task) {
@@ -1190,6 +1230,7 @@ async function analyzeWeeklyPhotoAndLoadGuide(task) {
       renderWeeklyPlan();
       return;
     }
+    detected = { area: task.area, categories: analysis.visible_categories?.length ? analysis.visible_categories : ["clean"], focus: LABELS.focus[analysis.cleaning_focus] ? analysis.cleaning_focus : "unknown", detected: true, manual: false };
   } catch {
     state.planGuide = { area: task.area, invalidPhoto: true, message: "사진 확인이 12초 안에 끝나지 않았어요." };
     renderWeeklyPlan();
@@ -1203,9 +1244,9 @@ async function analyzeWeeklyPhotoAndLoadGuide(task) {
 async function loadWeeklyGuide(guideContext) {
   try {
     const guide = await post("/api/cleaning-guide", { locale: "ko-KR", area_hint: guideContext.area, visible_categories: guideContext.categories, cleaning_focus: guideContext.focus, user_confirmed: true, observations: [] }, 8000);
-    state.planGuide = { area: guideContext.area, mode: guide.mode, detected: guideContext.detected, manual: guideContext.manual, steps: guide.steps || [] };
+    state.planGuide = { area: guideContext.area, focus: guideContext.focus, mode: guide.mode, detected: guideContext.detected, manual: guideContext.manual, steps: guide.steps || [] };
   } catch {
-    state.planGuide = { area: guideContext.area, mode: "local_fallback", detected: guideContext.detected, manual: guideContext.manual, steps: [
+    state.planGuide = { area: guideContext.area, focus: guideContext.focus, mode: "local_fallback", detected: guideContext.detected, manual: guideContext.manual, steps: [
       { instruction: "주변을 비우기", detail: "오늘 정한 작은 범위만 보이게 해요." },
       { instruction: "눈에 보이는 것부터 닦기", detail: "부드러운 천으로 한 방향씩 가볍게 닦아요." },
       { instruction: "물기와 도구 정리", detail: "남은 물기를 걷고 사용한 도구를 제자리에 둬요." },
@@ -1224,13 +1265,14 @@ async function completePlanTask(task) {
   finally { loading(false); }
   const afterThumbnail = await afterPhotoThumbnail(state.planAfterPhoto);
   const list = read(STORE.history, []);
-  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: "주간 돌봄", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, afterThumbnail, improved };
+  const planMode = activeWeeklyPlan()?.mode === "easy" ? "easy" : "normal";
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: planMode === "easy" ? "주간 돌봄 · EASY" : "주간 돌봄 · NORMAL", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, afterThumbnail, improved };
   const index = list.findIndex((item) => item.id === record.id);
   if (index >= 0) list[index] = record; else list.unshift(record);
   write(STORE.history, list.slice(0, 50));
   reward(`weekly-plan-${task.date}`, 3, `${LABELS.area[task.area]} 주간 돌봄 기록`);
   if (improved) plantRandomGardenSeed();
-  state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null; state.planDetected = null;
+  state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null; state.planDetected = null; state.planMaterial = "hard_surface";
   renderWeeklyPlan(); renderCash();
   if (improved) {
     state.gardenCelebration = true;
