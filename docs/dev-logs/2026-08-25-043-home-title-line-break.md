@@ -25,14 +25,13 @@
 - `node --check static/room3d.js`: 성공.
 - `node --check static/room-canvas3d.js`: 성공.
 - `git diff --check`: 성공.
-
-## 남은 위험과 제한
-
-- 실제 Production 배포 화면에서 데스크톱·모바일 레이아웃을 한 번 더 확인해야 한다.
+- Production 브라우저 확인: 1440px에서 두 문장이 각각 한 줄이며, 두 줄 모두 690px 영역 안에 표시됨.
+- Production 브라우저 확인: 360px에서 본문 폭 345px로 가로 넘침 없음.
+- Vercel Production 배포 완료: `https://clean-master-care.vercel.app`
 
 ## 다음 작업과 다음 세션의 첫 행동
 
-- 홈 제목 줄바꿈 작업은 배포 및 브라우저 확인 후 완료한다.
+- 홈 제목 줄바꿈 작업은 완료되었다.
 
 ## 다음 세션이 확인할 파일과 회귀 주의사항
 
