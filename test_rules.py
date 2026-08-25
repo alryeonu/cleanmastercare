@@ -183,6 +183,15 @@ def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:
     assert "손가락으로 농장을 둘러보세요" not in markup
 
 
+def test_home_title_keeps_each_message_on_its_own_desktop_line() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert '<span class="hero-title-line">깨끗함을 평가하지 않고,</span>' in markup
+    assert '<span class="hero-title-line"><em>시작할 용기</em>를 돕습니다.</span>' in markup
+    assert ".hero-title-line{display:block;word-break:keep-all}" in styles
+    assert ".hero-title-line{white-space:nowrap}" in styles
+
+
 def test_local_nickname_login_scopes_care_progress_without_storing_photos() -> None:
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
