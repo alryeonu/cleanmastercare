@@ -31,16 +31,19 @@
 - `node --check static/app.js`: 성공.
 - `node --check static/room3d.js`: 성공.
 - `node --check static/room-canvas3d.js`: 성공.
+- 로컬 실제 RPC 읽기 검증: `rpc_verified: true`.
+- Vercel Production `/health`: `supabase_configured: true`, 릴리스 `ko-kr-2026-08-001` 확인.
+- Vercel Production `/api/cleaning-guide`: `mode: canonical`, `knowledge_source: supabase_release`, 6단계 응답 확인.
 
 ## 남은 위험과 제한
 
-- Vercel 환경변수 변경은 새 배포부터 반영되므로 프로덕션 재배포가 필요하다.
 - Supabase 프로젝트 정지, 네트워크 장애 또는 RPC 장애 시에는 검수된 로컬 6단계 스냅샷으로 계속 진행한다.
+- Secret Key를 회전하면 Vercel과 로컬 `.env`의 값을 함께 갱신해야 한다.
 
 ## 다음 작업과 다음 세션의 첫 행동
 
-- 프로덕션 재배포 후 `/health`에서 Supabase 설정 상태를 확인한다.
-- 실제 `/api/cleaning-guide` 요청이 `supabase_release`를 반환하는지 확인한다.
+- 현재 연결 작업은 완료되었다.
+- 다음 기능 작업 전 `/health`와 기본 6단계 대체 경로 회귀 테스트부터 실행한다.
 
 ## 다음 세션이 확인할 파일과 회귀 주의사항
 
