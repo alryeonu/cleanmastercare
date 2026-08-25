@@ -209,6 +209,7 @@ def test_community_thread_has_comments_without_exposing_a_card_count() -> None:
     assert thread["post"]["title"] == "작은 구역부터 시작해도 충분해요"
     assert thread["comments"]
     assert "comment_count" not in thread["post"]
+    assert "category" not in thread["post"]
 
 
 def test_community_comment_is_anonymous_and_validated() -> None:
@@ -223,3 +224,19 @@ def test_community_cards_open_a_thread_without_comment_metadata() -> None:
     assert 'data-open-post="${escapeHtml(post.id)}"' in source
     assert "openCommunityThread(card.dataset.openPost)" in source
     assert "comment_count" not in source
+
+
+def test_community_uses_a_topic_free_bulletin_board_layout() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert 'id="communityCategory"' not in markup
+    assert 'class="community-board-header"' in markup
+    assert "번호</span><span>제목</span>" in markup
+    assert 'class="community-post-number"' in script
+    assert "communityCategory" not in script
+    assert ".community-board-header,.community-post" in styles
+
+    post = server.community_post({"title": "게시판 형태가 편해요", "body": "주제를 고르지 않고 바로 글을 남겨요.", "delete_password": "1234"})
+    assert post["title"] == "게시판 형태가 편해요"
+    assert "category" not in post

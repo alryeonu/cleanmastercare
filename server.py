@@ -287,8 +287,8 @@ RATE_BUCKETS: dict[str, deque[float]] = defaultdict(deque)
 # 아직 도입하지 않았으므로 서버 재시작 시 작성글은 초기화됩니다.
 COMMUNITY_POSTS: deque[dict[str, Any]] = deque(maxlen=100)
 COMMUNITY_SEED = [
-    {"id": "welcome-tip", "category": "청소 꿀팁", "title": "작은 구역부터 시작해도 충분해요", "body": "타이머를 5분만 맞추고 눈앞의 한 칸부터 정리해요. 끝내지 못해도 다음 시작점이 생겨요.", "created_at": "방금 전"},
-    {"id": "welcome-story", "category": "오늘의 이야기", "title": "오늘은 싱크대 한쪽을 비웠어요", "body": "쌓인 그릇을 한 번에 해결하지 않고, 컵부터 제자리에 뒀어요. 다음에는 물기 닦기에 도전하려고요.", "created_at": "오늘"},
+    {"id": "welcome-tip", "title": "작은 구역부터 시작해도 충분해요", "body": "타이머를 5분만 맞추고 눈앞의 한 칸부터 정리해요. 끝내지 못해도 다음 시작점이 생겨요.", "created_at": "방금 전"},
+    {"id": "welcome-story", "title": "오늘은 싱크대 한쪽을 비웠어요", "body": "쌓인 그릇을 한 번에 해결하지 않고, 컵부터 제자리에 뒀어요. 다음에는 물기 닦기에 도전하려고요.", "created_at": "오늘"},
 ]
 COMMUNITY_COMMENTS: dict[str, deque[dict[str, Any]]] = {
     "welcome-tip": deque(
@@ -307,7 +307,7 @@ COMMUNITY_COMMENTS: dict[str, deque[dict[str, Any]]] = {
 
 
 def public_community_post(post: dict[str, Any]) -> dict[str, Any]:
-    return {key: post[key] for key in ("id", "category", "title", "body", "created_at") if key in post} | {"can_delete": bool(post.get("delete_hash"))}
+    return {key: post[key] for key in ("id", "title", "body", "created_at") if key in post} | {"can_delete": bool(post.get("delete_hash"))}
 
 
 def find_community_post(post_id: str) -> dict[str, Any]:
@@ -346,12 +346,9 @@ def community_comment(post_id: str, payload: Any) -> dict[str, Any]:
 def community_post(payload: Any) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("게시글 형식을 확인해주세요.")
-    category = str(payload.get("category", "")).strip()
     title = " ".join(str(payload.get("title", "")).split())
     body = "\n".join(line.strip() for line in str(payload.get("body", "")).splitlines() if line.strip())
     password = str(payload.get("delete_password", ""))
-    if category not in {"청소 꿀팁", "오늘의 이야기", "질문 있어요"}:
-        raise ValueError("게시글 주제를 선택해주세요.")
     if not 2 <= len(title) <= 60:
         raise ValueError("제목은 2~60자로 적어주세요.")
     if not 5 <= len(body) <= 600:
@@ -360,7 +357,7 @@ def community_post(payload: Any) -> dict[str, Any]:
         raise ValueError("삭제용 비밀번호는 4~64자로 설정해주세요.")
     salt = os.urandom(16)
     password_hash = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1).hex()
-    post = {"id": hashlib.sha256(f"{time.time_ns()}:{title}".encode()).hexdigest()[:12], "category": category, "title": title, "body": body, "created_at": "방금 전", "delete_salt": salt.hex(), "delete_hash": password_hash}
+    post = {"id": hashlib.sha256(f"{time.time_ns()}:{title}".encode()).hexdigest()[:12], "title": title, "body": body, "created_at": "방금 전", "delete_salt": salt.hex(), "delete_hash": password_hash}
     COMMUNITY_POSTS.appendleft(post)
     return public_community_post(post)
 

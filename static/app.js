@@ -170,7 +170,7 @@ async function renderCommunity() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "게시글을 불러오지 못했어요.");
     const posts = Array.isArray(data.posts) ? data.posts : [];
-    container.innerHTML = posts.length ? posts.map((post) => `<article class="community-post" data-open-post="${escapeHtml(post.id)}" tabindex="0" role="button" aria-label="${escapeHtml(post.title)} 글 열기"><span class="community-tag">${escapeHtml(post.category)}</span><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.body).replace(/\n/g, "<br>")}</p><small>익명 · ${escapeHtml(post.created_at || "오늘")}</small>${post.can_delete ? `<details class="community-delete"><summary>내 글 삭제</summary><div><label>삭제용 비밀번호<input type="password" maxlength="64" autocomplete="current-password" data-delete-password="${escapeHtml(post.id)}" placeholder="작성할 때 정한 비밀번호"></label><button class="text-button danger" data-delete-post="${escapeHtml(post.id)}">이 글 삭제</button></div></details>` : ""}</article>`).join("") : '<p class="empty">첫 번째 이야기를 남겨볼까요?</p>';
+    container.innerHTML = posts.length ? posts.map((post, index) => `<article class="community-post" data-open-post="${escapeHtml(post.id)}" tabindex="0" role="button" aria-label="${escapeHtml(post.title)} 글 열기"><span class="community-post-number">${posts.length - index}</span><div class="community-post-title"><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.body).replace(/\n/g, " ")}</p></div><span class="community-post-author">익명</span><small class="community-post-date">${escapeHtml(post.created_at || "오늘")}</small>${post.can_delete ? `<details class="community-delete"><summary>내 글 삭제</summary><div><label>삭제용 비밀번호<input type="password" maxlength="64" autocomplete="current-password" data-delete-password="${escapeHtml(post.id)}" placeholder="작성할 때 정한 비밀번호"></label><button class="text-button danger" data-delete-post="${escapeHtml(post.id)}">이 글 삭제</button></div></details>` : ""}</article>`).join("") : '<p class="empty">첫 번째 게시글을 남겨볼까요?</p>';
     $$('[data-delete-post]', container).forEach((button) => button.addEventListener("click", () => deleteCommunityPost(button.dataset.deletePost)));
     container.onclick = (event) => {
       if (event.target.closest(".community-delete")) return;
@@ -202,7 +202,6 @@ async function openCommunityThread(postId) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "게시글을 불러오지 못했어요.");
     const post = data.post || {};
-    $("#communityDialogTag").textContent = post.category || "이야기";
     $("#communityDialogTitle").textContent = post.title || "익명 이야기";
     $("#communityDialogBody").textContent = post.body || "";
     $("#communityDialogMeta").textContent = `익명 · ${post.created_at || "오늘"}`;
@@ -231,7 +230,7 @@ async function submitCommunityComment(event) {
 async function submitCommunityPost(event) {
   event.preventDefault();
   const button = $("#communityForm button[type=submit]");
-  const payload = { category: $("#communityCategory").value, title: $("#communityTitle").value, body: $("#communityBody").value, delete_password: $("#communityPassword").value };
+  const payload = { title: $("#communityTitle").value, body: $("#communityBody").value, delete_password: $("#communityPassword").value };
   if (payload.title.trim().length < 2) { toast("제목을 2자 이상 입력해주세요."); $("#communityTitle").focus(); return; }
   if (payload.body.trim().length < 5) { toast("내용을 5자 이상 입력해주세요."); $("#communityBody").focus(); return; }
   if (payload.delete_password.length < 4) { toast("글을 삭제할 때 쓸 비밀번호를 4자 이상 입력해주세요."); $("#communityPassword").focus(); return; }
@@ -1162,6 +1161,7 @@ $("#communityForm").addEventListener("submit", submitCommunityPost);
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());
 $("#refreshCommunity").addEventListener("click", renderCommunity);
+$("#openCommunityWrite").addEventListener("click", () => { $("#communityWrite").scrollIntoView({ behavior: "smooth", block: "start" }); $("#communityTitle").focus({ preventScroll: true }); });
 $("#accountButton").addEventListener("click", openLogin);
 $("#loginForm").addEventListener("submit", submitLogin);
 $("#loginDialog").addEventListener("cancel", (event) => { if (!currentAccount()) event.preventDefault(); });
