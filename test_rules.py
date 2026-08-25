@@ -364,3 +364,21 @@ def test_community_uses_a_topic_free_bulletin_board_layout() -> None:
     post = server.community_post({"title": "게시판 형태가 편해요", "body": "주제를 고르지 않고 바로 글을 남겨요.", "delete_password": "1234"})
     assert post["title"] == "게시판 형태가 편해요"
     assert "category" not in post
+
+
+def test_community_post_can_publish_a_validated_public_photo() -> None:
+    photo = "data:image/jpeg;base64,aW1hZ2U="
+    post = server.community_post({"title": "사진과 함께 남겨요", "body": "사진을 첨부한 익명 글이에요.", "delete_password": "1234", "photo": photo})
+    assert post["photo"] == photo
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert "communityPhotoData" in script
+    assert 'id="communityPhoto"' in markup
+    assert 'id="communityDialogPhoto"' in markup
+
+
+def test_visible_product_name_is_today_place() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert "<title>오늘의 자리</title>" in markup
+    assert "오늘의 자리</span>" in markup
+    assert server.health()["service"] == "오늘의 자리"

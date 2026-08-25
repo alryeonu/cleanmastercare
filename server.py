@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -325,7 +327,7 @@ COMMUNITY_COMMENTS: dict[str, deque[dict[str, Any]]] = {
 
 
 def public_community_post(post: dict[str, Any]) -> dict[str, Any]:
-    return {key: post[key] for key in ("id", "title", "body", "created_at") if key in post} | {"can_delete": bool(post.get("delete_hash"))}
+    return {key: post[key] for key in ("id", "title", "body", "created_at", "photo") if key in post} | {"can_delete": bool(post.get("delete_hash"))}
 
 
 def find_community_post(post_id: str) -> dict[str, Any]:
@@ -373,9 +375,20 @@ def community_post(payload: Any) -> dict[str, Any]:
         raise ValueError("내용은 5~600자로 적어주세요.")
     if not 4 <= len(password) <= 64:
         raise ValueError("삭제용 비밀번호는 4~64자로 설정해주세요.")
+    photo = payload.get("photo")
+    if photo is not None:
+        if not isinstance(photo, str) or not photo.startswith("data:image/jpeg;base64,") or len(photo) > 1_100_000:
+            raise ValueError("첨부 사진 형식을 확인해주세요.")
+        try:
+            if len(base64.b64decode(photo.split(",", 1)[1], validate=True)) > 800_000:
+                raise ValueError("첨부 사진은 더 작은 크기로 올려주세요.")
+        except (ValueError, binascii.Error):
+            raise ValueError("첨부 사진 형식을 확인해주세요.")
     salt = os.urandom(16)
     password_hash = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1).hex()
     post = {"id": hashlib.sha256(f"{time.time_ns()}:{title}".encode()).hexdigest()[:12], "title": title, "body": body, "created_at": "방금 전", "delete_salt": salt.hex(), "delete_hash": password_hash}
+    if photo:
+        post["photo"] = photo
     COMMUNITY_POSTS.appendleft(post)
     return public_community_post(post)
 

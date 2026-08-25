@@ -55,3 +55,4 @@
 - [2026-08-26 · 애프터 사진 기록 썸네일](2026-08-26-056-after-photo-history-thumbnails.md)
 - [2026-08-26 · 주간 돌봄 애프터 사진 썸네일](2026-08-26-057-weekly-after-photo-thumbnail.md)
 - [2026-08-26 · 텃밭 자동 장식과 기록 화면 단순화](2026-08-26-058-garden-decor-instead-of-shop.md)
+- [2026-08-26 · 오늘의 자리 브랜딩, 텃밭 장식 위치와 공개 사진 첨부](2026-08-26-059-brand-garden-and-community-photos.md)

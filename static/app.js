@@ -34,7 +34,7 @@ const LABELS = {
 };
 const CARE_STEP_MEMORY = 3;
 const MEMORY_PLANT_COST = 1;
-const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, gardenCelebration: false };
+const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false };
 
 const DECOR_ITEMS = [
   { id: "scarecrow", icon: "🌾", title: "밀짚 허수아비", body: "사람 캐릭터와 헷갈리지 않는 볏짚 표식이에요.", cost: 15 },
@@ -199,7 +199,7 @@ async function renderCommunity() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "게시글을 불러오지 못했어요.");
     const posts = Array.isArray(data.posts) ? data.posts : [];
-    container.innerHTML = posts.length ? posts.map((post, index) => `<article class="community-post" data-open-post="${escapeHtml(post.id)}" tabindex="0" role="button" aria-label="${escapeHtml(post.title)} 글 열기"><span class="community-post-number">${posts.length - index}</span><div class="community-post-title"><h3>${escapeHtml(post.title)}</h3><p>${escapeHtml(post.body).replace(/\n/g, " ")}</p></div><span class="community-post-author">익명</span><small class="community-post-date">${escapeHtml(post.created_at || "오늘")}</small>${post.can_delete ? `<details class="community-delete"><summary>내 글 삭제</summary><div><label>삭제용 비밀번호<input type="password" maxlength="64" autocomplete="current-password" data-delete-password="${escapeHtml(post.id)}" placeholder="작성할 때 정한 비밀번호"></label><button class="text-button danger" data-delete-post="${escapeHtml(post.id)}">이 글 삭제</button></div></details>` : ""}</article>`).join("") : '<p class="empty">첫 번째 게시글을 남겨볼까요?</p>';
+    container.innerHTML = posts.length ? posts.map((post, index) => `<article class="community-post" data-open-post="${escapeHtml(post.id)}" tabindex="0" role="button" aria-label="${escapeHtml(post.title)} 글 열기"><span class="community-post-number">${posts.length - index}</span><div class="community-post-title"><h3>${escapeHtml(post.title)}${post.photo ? '<span class="community-photo-mark">사진</span>' : ""}</h3><p>${escapeHtml(post.body).replace(/\n/g, " ")}</p></div><span class="community-post-author">익명</span><small class="community-post-date">${escapeHtml(post.created_at || "오늘")}</small>${post.can_delete ? `<details class="community-delete"><summary>내 글 삭제</summary><div><label>삭제용 비밀번호<input type="password" maxlength="64" autocomplete="current-password" data-delete-password="${escapeHtml(post.id)}" placeholder="작성할 때 정한 비밀번호"></label><button class="text-button danger" data-delete-post="${escapeHtml(post.id)}">이 글 삭제</button></div></details>` : ""}</article>`).join("") : '<p class="empty">첫 번째 게시글을 남겨볼까요?</p>';
     $$('[data-delete-post]', container).forEach((button) => button.addEventListener("click", () => deleteCommunityPost(button.dataset.deletePost)));
     container.onclick = (event) => {
       if (event.target.closest(".community-delete")) return;
@@ -233,6 +233,9 @@ async function openCommunityThread(postId) {
     const post = data.post || {};
     $("#communityDialogTitle").textContent = post.title || "익명 이야기";
     $("#communityDialogBody").textContent = post.body || "";
+    const photo = typeof post.photo === "string" && post.photo.startsWith("data:image/jpeg;base64,") ? post.photo : "";
+    $("#communityDialogPhoto").hidden = !photo;
+    $("#communityDialogPhoto").src = photo;
     $("#communityDialogMeta").textContent = `익명 · ${post.created_at || "오늘"}`;
     $("#communityCommentPostId").value = post.id || postId;
     $("#communityCommentBody").value = "";
@@ -259,12 +262,12 @@ async function submitCommunityComment(event) {
 async function submitCommunityPost(event) {
   event.preventDefault();
   const button = $("#communityForm button[type=submit]");
-  const payload = { title: $("#communityTitle").value, body: $("#communityBody").value, delete_password: $("#communityPassword").value };
+  const payload = { title: $("#communityTitle").value, body: $("#communityBody").value, delete_password: $("#communityPassword").value, photo: state.communityPhoto };
   if (payload.title.trim().length < 2) { toast("제목을 2자 이상 입력해주세요."); $("#communityTitle").focus(); return; }
   if (payload.body.trim().length < 5) { toast("내용을 5자 이상 입력해주세요."); $("#communityBody").focus(); return; }
   if (payload.delete_password.length < 4) { toast("글을 삭제할 때 쓸 비밀번호를 4자 이상 입력해주세요."); $("#communityPassword").focus(); return; }
   button.disabled = true;
-  try { await post("/api/community/posts", payload); event.currentTarget.reset(); toast("익명 이야기를 공유했어요."); renderCommunity(); }
+  try { await post("/api/community/posts", payload); event.currentTarget.reset(); state.communityPhoto = null; $("#communityPhotoPreview").hidden = true; $("#communityPhotoPreview").src = ""; toast("익명 이야기를 공유했어요."); renderCommunity(); }
   catch (error) { toast(error.message || "게시글을 올리지 못했어요."); }
   finally { button.disabled = false; }
 }
@@ -792,6 +795,17 @@ async function imageData(file) {
   canvas.getContext("2d").drawImage(original, 0, 0, canvas.width, canvas.height);
   URL.revokeObjectURL(original.src);
   return canvas.toDataURL("image/jpeg", .72);
+}
+
+async function communityPhotoData(file) {
+  const source = await imageData(file);
+  const image = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = source; });
+  const scale = Math.min(1, 800 / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", .66);
 }
 
 function bindImage(inputId, previewId, key, onReady) {
@@ -1326,6 +1340,19 @@ $("#resetWeeklyPlan").addEventListener("click", () => {
 });
 $("#completeDaily").addEventListener("click", () => showView("mission"));
 $("#communityForm").addEventListener("submit", submitCommunityPost);
+$("#communityPhoto")?.addEventListener("change", async (event) => {
+  const preview = $("#communityPhotoPreview");
+  try {
+    state.communityPhoto = await communityPhotoData(event.target.files[0]);
+    preview.src = state.communityPhoto;
+    preview.hidden = false;
+  } catch (error) {
+    event.target.value = "";
+    state.communityPhoto = null;
+    preview.hidden = true;
+    toast(error.message || "사진을 준비하지 못했어요.");
+  }
+});
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());
 $("#refreshCommunity").addEventListener("click", renderCommunity);
