@@ -164,6 +164,13 @@ def test_photo_checklist_reuses_the_care_step_reward_and_daily_key() -> None:
     assert "reward(`photo-mission-${pairHash}-${key}`, 3" not in source
 
 
+def test_locked_farm_items_do_not_leave_ghost_images() -> None:
+    source = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert ".farm-item{visibility:hidden;opacity:0;" in source
+    assert ".farm-item.unlocked{visibility:visible;opacity:1;" in source
+    assert ".farm-item{opacity:.12;" not in source
+
+
 def test_community_thread_has_comments_without_exposing_a_card_count() -> None:
     thread = server.community_thread("welcome-tip")
     assert thread["post"]["title"] == "작은 구역부터 시작해도 충분해요"

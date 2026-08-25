@@ -35,3 +35,4 @@
 - [2026-08-25 · 게시글 팝업과 익명 댓글](2026-08-25-033-community-thread-comments.md)
 - [2026-08-25 · 참고 시각 자산 되돌리기](2026-08-25-037-revert-reference-visuals.md)
 - [2026-08-25 · Supabase 새 Secret Key 연결](2026-08-25-038-supabase-secret-key-connection.md)
+- [2026-08-25 · 잠긴 농장 아이템 잔상 제거](2026-08-25-039-hide-locked-farm-ghosts.md)
