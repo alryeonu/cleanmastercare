@@ -1,8 +1,8 @@
-# 청소의 고수 24시간 MVP PRD
+# 오늘의 자리 24시간 MVP PRD
 
 ## 1. 문서 정보
 
-- 제품명: 청소의 고수
+- 제품명: 오늘의 자리
 - 제품 형태: 모바일 우선 반응형 웹 애플리케이션
 - 구현 시간: 24시간
 - 기준 코드베이스: FastAPI + 정적 HTML/CSS/JavaScript + OpenAI Responses API

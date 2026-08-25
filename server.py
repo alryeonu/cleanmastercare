@@ -406,7 +406,7 @@ def rate_allowed(client: str, limit: int = 40, window: int = 3600) -> bool:
     return True
 
 
-app = FastAPI(title="청소의 고수", docs_url=None, redoc_url=None)
+app = FastAPI(title="오늘의 자리", docs_url=None, redoc_url=None)
 
 
 @app.middleware("http")
@@ -447,7 +447,7 @@ def health() -> dict[str, Any]:
     repository = get_knowledge_repository()
     return {
         "status": "ok",
-        "service": "청소의 고수",
+        "service": "오늘의 자리",
         "openai_configured": bool(os.getenv("OPENAI_API_KEY", "").strip()),
         "grounded_llm_enabled": env_enabled("ENABLE_GROUNDED_GUIDE_LLM"),
         "supabase_configured": bool(os.getenv("SUPABASE_URL", "").strip() and get_supabase_server_key()[0]),

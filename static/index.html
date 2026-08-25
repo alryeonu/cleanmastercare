@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#163f3a">
   <meta name="description" content="욕실 오염 사진을 확인하고 쉬운 청소 순서를 안내합니다.">
-  <title>청소의 고수</title>
+  <title>오늘의 자리</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&amp;family=Jua&amp;display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 </head>
 <body>
   <header class="topbar">
-    <button class="brand reset" data-view="home" aria-label="홈으로"><span class="brand-mark"><img src="/assets/clean-master-logo.svg?v=1" alt=""></span><span>청소의 고수</span></button>
+    <button class="brand reset" data-view="home" aria-label="홈으로"><span class="brand-mark"><img src="/assets/clean-master-logo.svg?v=1" alt=""></span><span>오늘의 자리</span></button>
     <div class="top-actions">
       <span id="apiStatus" class="status-dot">연결 확인 중</span>
       <button id="accountButton" class="account-button" type="button" aria-label="로그인 계정 설정 열기"><b id="accountNickname">로그인</b><span class="nickname-heart" aria-hidden="true">♥</span></button>
@@ -108,10 +108,10 @@
     </section>
 
     <section class="page shell" id="community">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">ANONYMOUS COMMUNITY</span><h1>함께 나누는 청소 이야기</h1><p>이름과 사진 없이, 나만의 작은 팁과 오늘의 이야기를 나눠요.</p></div></div>
-      <section class="community-intro card"><div class="community-mascot"><img src="/assets/clean-master-mascot-v2.png?v=2" alt="" aria-hidden="true"></div><div><h2>가볍게 남기는 익명 게시판</h2><p>개인정보·사진·위치 정보는 올리지 말아주세요. 서로의 공간과 속도를 판단하지 않는 다정한 게시판이에요.</p></div></section>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">ANONYMOUS COMMUNITY</span><h1>함께 나누는 오늘의 이야기</h1><p>이름 없이, 나만의 작은 팁과 오늘의 이야기를 나눠요.</p></div></div>
+      <section class="community-intro card"><div class="community-mascot"><img src="/assets/clean-master-mascot-v2.png?v=2" alt="" aria-hidden="true"></div><div><h2>가볍게 남기는 익명 게시판</h2><p>개인정보·위치 정보는 올리지 말아주세요. 서로의 공간과 속도를 판단하지 않는 다정한 게시판이에요.</p></div></section>
       <section class="community-feed"><div class="community-feed-head"><div><span class="kicker">COMMUNITY BOARD</span><h2>이야기 게시판</h2></div><div class="community-feed-actions"><button id="refreshCommunity" class="text-button" type="button">새로고침</button><button id="openCommunityWrite" class="primary" type="button">글쓰기</button></div></div><div class="community-board"><div class="community-board-header" aria-hidden="true"><span>번호</span><span>제목</span><span class="community-board-author">작성자</span><span>등록일</span></div><div id="communityPosts" class="community-posts" aria-live="polite"><p class="empty">게시글을 불러오는 중이에요.</p></div></div></section>
-      <section class="community-compose card" id="communityWrite" aria-labelledby="communityWriteTitle"><div><span class="kicker">WRITE ANONYMOUSLY</span><h2 id="communityWriteTitle">새 글 쓰기</h2><p class="community-required">제목과 내용을 적고, 내 글을 지울 때 사용할 <b>비밀번호(4자 이상)</b>를 정해주세요.</p></div><form id="communityForm" novalidate><div class="community-fields"><label>제목<input id="communityTitle" maxlength="60" minlength="2" placeholder="예: 5분 타이머로 책상 한 칸 비우기" required></label><label>삭제용 비밀번호<input id="communityPassword" type="password" minlength="4" maxlength="64" autocomplete="new-password" placeholder="4자 이상 입력" required></label></div><label>내용<textarea id="communityBody" maxlength="600" minlength="5" rows="5" placeholder="사진이나 개인정보 없이, 직접 해본 방법과 느낀 점을 적어주세요." required></textarea></label><div class="community-form-foot"><small>비밀번호는 글 삭제에만 사용되며 원문은 저장하지 않아요. 잊으면 삭제할 수 없어요.</small><button class="primary" type="submit">게시글 등록 <span>→</span></button></div></form></section>
+      <section class="community-compose card" id="communityWrite" aria-labelledby="communityWriteTitle"><div><span class="kicker">WRITE ANONYMOUSLY</span><h2 id="communityWriteTitle">새 글 쓰기</h2><p class="community-required">제목과 내용을 적고, 내 글을 지울 때 사용할 <b>비밀번호(4자 이상)</b>를 정해주세요.</p></div><form id="communityForm" novalidate><div class="community-fields"><label>제목<input id="communityTitle" maxlength="60" minlength="2" placeholder="예: 5분 타이머로 책상 한 칸 비우기" required></label><label>삭제용 비밀번호<input id="communityPassword" type="password" minlength="4" maxlength="64" autocomplete="new-password" placeholder="4자 이상 입력" required></label></div><label>내용<textarea id="communityBody" maxlength="600" minlength="5" rows="5" placeholder="직접 해본 방법과 느낀 점을 적어주세요." required></textarea></label><div class="community-form-foot"><small>비밀번호는 글 삭제에만 사용되며 원문은 저장하지 않아요. 잊으면 삭제할 수 없어요.</small><button class="primary" type="submit">게시글 등록 <span>→</span></button></div></form></section>
     </section>
 
     <dialog id="communityDialog" class="community-dialog" aria-labelledby="communityDialogTitle">
@@ -139,6 +139,6 @@
   <nav class="bottom-nav five-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>▦</span>이번 주</button><button data-view="room"><span>🌱</span>텃밭</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기록·기억</button></nav>
   <div id="loading" class="loading hidden" role="status" aria-live="polite"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><div id="loadingProgress" class="loading-progress" role="progressbar" aria-label="사진 확인 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b id="loadingProgressBar"></b></div><small id="loadingPercent">0% · 잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/app.js?v=weekly-guide11"></script>
+  <script src="/assets/app.js?v=weekly-guide12"></script>
 </body>
 </html>
