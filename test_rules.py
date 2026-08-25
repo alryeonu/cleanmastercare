@@ -171,6 +171,18 @@ def test_locked_farm_items_do_not_leave_ghost_images() -> None:
     assert ".farm-item{opacity:.12;" not in source
 
 
+def test_local_nickname_login_scopes_care_progress_without_storing_photos() -> None:
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    assert 'accounts: "clean_master.local_accounts.v1"' in script
+    assert 'session: "clean_master.local_session.v1"' in script
+    assert 'return account ? `${key}.profile.${account.id}` : key;' in script
+    assert 'if ([...password].length !== 4)' in script
+    assert 'id="accountNickname"' in markup
+    assert 'class="nickname-heart"' in markup
+    assert 'id="loginPassword" type="password" maxlength="4" minlength="4"' in markup
+
+
 def test_community_thread_has_comments_without_exposing_a_card_count() -> None:
     thread = server.community_thread("welcome-tip")
     assert thread["post"]["title"] == "작은 구역부터 시작해도 충분해요"

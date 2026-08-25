@@ -18,6 +18,11 @@ const STORE = {
   photoPairs: "clean_master.photo_pair_hashes.v1",
   completedAreas: "clean_master.completed_areas.v1",
 };
+const AUTH = {
+  accounts: "clean_master.local_accounts.v1",
+  session: "clean_master.local_session.v1",
+  legacyMigration: "clean_master.local_profile_migration.v1",
+};
 const LABELS = {
   area: { desk: "책상", sink: "싱크대", sofa: "소파", bed: "침대·침구", shoe_rack: "신발장", bathroom: "욕실", kitchen: "주방", other: "다른 공간" },
   careType: { organize: "정리할 것", clean: "청소할 것", laundry: "세탁할 것" },
@@ -59,8 +64,77 @@ const FARMER_AVATARS = { woman: "👩‍🌾", man: "👨‍🌾" };
 const FARMER_OUTFITS = { classic: "", flower: "🌼", star: "⭐", "pink-apron": "🎀", "blue-overalls": "🧢", "rainbow-coat": "🌈" };
 const FREE_FARMER_OUTFITS = ["classic", "flower", "star"];
 
-function read(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
-function write(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+function rawRead(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+function rawWrite(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+function profileId(nickname) { return encodeURIComponent(nickname.trim().toLocaleLowerCase("ko-KR")); }
+function accounts() { return rawRead(AUTH.accounts, {}); }
+function currentAccount() {
+  const session = rawRead(AUTH.session, null);
+  return session?.id && accounts()[session.id] ? accounts()[session.id] : null;
+}
+function profileStoreKey(key) {
+  const account = currentAccount();
+  return account ? `${key}.profile.${account.id}` : key;
+}
+function read(key, fallback) { return rawRead(profileStoreKey(key), fallback); }
+function write(key, value) { rawWrite(profileStoreKey(key), value); }
+async function passwordHash(password) {
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+function migrateLegacyProfile(account) {
+  if (rawRead(AUTH.legacyMigration, null)) return;
+  Object.values(STORE).forEach((key) => {
+    const legacyValue = localStorage.getItem(key);
+    const profileKey = `${key}.profile.${account.id}`;
+    if (legacyValue !== null && localStorage.getItem(profileKey) === null) localStorage.setItem(profileKey, legacyValue);
+  });
+  rawWrite(AUTH.legacyMigration, { accountId: account.id, migratedAt: new Date().toISOString() });
+}
+function renderAccount() {
+  const account = currentAccount();
+  const name = account?.nickname || "로그인";
+  $("#accountNickname").textContent = name;
+  $("#accountButton").setAttribute("aria-label", `${name} 계정 설정 열기`);
+}
+function openLogin() {
+  const account = currentAccount();
+  const dialog = $("#loginDialog");
+  $("#loginNickname").value = account?.nickname || "";
+  $("#loginPassword").value = "";
+  $("#loginError").textContent = "";
+  if (!dialog.open) dialog.showModal();
+}
+function startSignedInApp() {
+  const settings = read(STORE.settings, {});
+  document.body.classList.toggle("easy", !!settings.easy);
+  updateZoomButton(!!settings.easy);
+  renderAccount();
+  showView(["home", "mission", "room", "community", "cash", "history"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home");
+  updateCounters(); renderDailyMission(); renderSpendShop(); renderFarmerStyle(); renderFarmGrowth(); health();
+}
+async function submitLogin(event) {
+  event.preventDefault();
+  const nickname = $("#loginNickname").value.trim();
+  const password = $("#loginPassword").value;
+  const error = $("#loginError");
+  if ([...nickname].length < 2 || [...nickname].length > 12) { error.textContent = "닉네임은 2~12자로 입력해주세요."; return; }
+  if ([...password].length !== 4) { error.textContent = "비밀번호는 정확히 4자로 입력해주세요."; return; }
+  if (!globalThis.crypto?.subtle) { error.textContent = "이 브라우저에서는 로그인 저장을 지원하지 않아요."; return; }
+  const id = profileId(nickname);
+  const savedAccounts = accounts();
+  const digest = await passwordHash(password);
+  const saved = savedAccounts[id];
+  if (saved && saved.passwordHash !== digest) { error.textContent = "비밀번호가 맞지 않아요."; return; }
+  const account = saved || { id, nickname, passwordHash: digest, createdAt: new Date().toISOString() };
+  if (!saved) rawWrite(AUTH.accounts, { ...savedAccounts, [id]: account });
+  rawWrite(AUTH.session, { id: account.id });
+  migrateLegacyProfile(account);
+  $("#loginDialog").close();
+  startSignedInApp();
+  toast(`${account.nickname}님, 돌봄 농장에 다시 왔어요. 💚`);
+}
 function today() { return new Date().toLocaleDateString("en-CA"); }
 function escapeHtml(value) { const d = document.createElement("div"); d.textContent = String(value ?? ""); return d.innerHTML; }
 function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
@@ -1088,10 +1162,11 @@ $("#communityForm").addEventListener("submit", submitCommunityPost);
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());
 $("#refreshCommunity").addEventListener("click", renderCommunity);
+$("#accountButton").addEventListener("click", openLogin);
+$("#loginForm").addEventListener("submit", submitLogin);
+$("#loginDialog").addEventListener("cancel", (event) => { if (!currentAccount()) event.preventDefault(); });
 
-const settings = read(STORE.settings, {}); document.body.classList.toggle("easy", !!settings.easy); updateZoomButton(!!settings.easy);
-showView(["home", "mission", "room", "community", "cash", "history"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "home");
-updateCounters(); renderDailyMission(); renderSpendShop(); renderFarmerStyle(); renderFarmGrowth(); health();
+if (currentAccount()) startSignedInApp(); else { renderAccount(); openLogin(); }
 setInterval(() => {
   if ($("#room").classList.contains("active")) renderFarmGrowth();
 }, 1000);
