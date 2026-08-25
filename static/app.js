@@ -143,12 +143,19 @@ function toast(message) { const el = $("#toast"); el.textContent = message; el.c
 function loading(on, text = "사진을 살펴보고 있어요") { $("#loadingText").textContent = text; $("#loading").classList.toggle("hidden", !on); }
 function updateZoomButton(active) { const button = $("#easyToggle"); button.textContent = active ? "축소 모드" : "확대 모드"; button.setAttribute("aria-pressed", active); button.setAttribute("aria-label", active ? "화면 축소 모드" : "화면 확대 모드"); }
 
-async function post(url, body) {
-  const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  let data = {};
-  try { data = await response.json(); } catch { /* empty */ }
-  if (!response.ok) throw new Error(data.error || data.detail || "요청을 처리하지 못했어요.");
-  return data;
+async function post(url, body, timeoutMs = 35000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: controller.signal });
+    let data = {};
+    try { data = await response.json(); } catch { /* empty */ }
+    if (!response.ok) throw new Error(data.error || data.detail || "요청을 처리하지 못했어요.");
+    return data;
+  } catch (error) {
+    if (error.name === "AbortError") throw new Error("응답이 지연되어 기본 안내로 전환했어요.");
+    throw error;
+  } finally { clearTimeout(timeout); }
 }
 
 function showView(id) {
@@ -747,12 +754,12 @@ async function imageData(file) {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("JPG, PNG, WEBP 사진만 사용할 수 있어요.");
   if (file.size > 10 * 1024 * 1024) throw new Error("사진 한 장은 10MB 이하여야 해요.");
   const original = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = URL.createObjectURL(file); });
-  const scale = Math.min(1, 1600 / Math.max(original.width, original.height));
+  const scale = Math.min(1, 1280 / Math.max(original.width, original.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(original.width * scale); canvas.height = Math.round(original.height * scale);
   canvas.getContext("2d").drawImage(original, 0, 0, canvas.width, canvas.height);
   URL.revokeObjectURL(original.src);
-  return canvas.toDataURL("image/jpeg", .8);
+  return canvas.toDataURL("image/jpeg", .72);
 }
 
 function bindImage(inputId, previewId, key, onReady) {
@@ -1109,41 +1116,52 @@ function renderWeeklyPlan() {
   const guideSource = guide?.mode === "local_fallback" ? "BASIC CARE GUIDE" : "SUPABASE CLEANING GUIDE";
   const guideIntro = guide?.mode === "local_fallback" ? "연결 상태와 관계없이 이어갈 수 있는 기본 절차예요." : "Supabase에서 조회한 검수된 절차를 순서대로 안내해요.";
   const detectedNote = guide?.detected ? `<p class="plan-detected">사진에서 <b>${LABELS.area[guideArea]}</b> 후보를 관찰해 이 공간의 절차를 안내해요.</p>` : "";
-  const guideMarkup = guide ? `<section class="plan-guide"><span class="kicker">${guideSource}</span><h3>${LABELS.area[guideArea]} 청소 절차</h3>${detectedNote}<p>${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.</p><ol>${guide.steps.slice(0, 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">사진 속 공간을 확인하고, Supabase의 검수된 청소 절차를 불러오는 중이에요.</p>` : "";
+  const manualAreaChoice = guide?.manual ? `<label class="weekly-area-override">사진 속 공간을 직접 고르기<select id="weeklyAreaOverride">${PLAN_AREAS.map((area) => `<option value="${area}" ${area === guideArea ? "selected" : ""}>${LABELS.area[area]}</option>`).join("")}</select></label>` : "";
+  const guideMarkup = guide ? `<section class="plan-guide"><span class="kicker">${guideSource}</span><h3>${LABELS.area[guideArea]} 청소 절차</h3>${detectedNote}${manualAreaChoice}<p>${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.</p><ol>${guide.steps.slice(0, 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>` : state.planPhoto ? `<p class="plan-guide-loading">사진 속 공간을 확인하고, Supabase의 검수된 청소 절차를 불러오는 중이에요.</p>` : "";
   const photoMarkup = (data, label) => data ? `<img src="${data}" alt="${label} 미리보기">` : "";
   $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div><label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${done ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : "개선 확인하고 텃밭 보기"}</button></div>`;
   $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); state.planGuide = null; state.planDetected = null; renderWeeklyPlan(); await analyzeWeeklyPhotoAndLoadGuide(current); } catch (error) { toast(error.message); } });
   $("#planAfterPhotoInput").addEventListener("change", async (event) => { try { state.planAfterPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
+  $("#weeklyAreaOverride")?.addEventListener("change", async (event) => {
+    loading(true, "선택한 공간의 청소 절차를 불러오고 있어요");
+    try { await loadWeeklyGuide({ area: event.target.value, categories: ["clean"], focus: "unknown", detected: false, manual: true }); }
+    finally { loading(false); }
+  });
   $("#completePlanTask").addEventListener("click", () => completePlanTask(current));
 }
 async function analyzeWeeklyPhotoAndLoadGuide(task) {
-  let detected = { area: task.area, categories: ["clean"], focus: "unknown", detected: false };
+  let detected = { area: task.area, categories: ["clean"], focus: "unknown", detected: false, manual: false };
+  loading(true, "사진 속 공간을 AI가 살펴보고 있어요");
   try {
     const analysis = await post("/api/analyze", {
       mode: "cleaning_area",
       images: [state.planPhoto],
       context: { area: "other", categories: [], focus: "unknown" },
-    });
+    }, 35000);
     if (!analysis.manual_required && LABELS.area[analysis.area_hint]) {
       detected = {
         area: analysis.area_hint,
         categories: Array.isArray(analysis.visible_categories) && analysis.visible_categories.length ? analysis.visible_categories : ["clean"],
         focus: analysis.cleaning_focus || "unknown",
         detected: true,
+        manual: false,
       };
     }
   } catch {
-    toast("사진 속 공간을 확인하기 어려워 계획한 장소의 안내를 준비해요.");
+    detected.manual = true;
+    toast("AI 분석이 오래 걸려 직접 선택으로 계속할 수 있어요.");
+  } finally {
+    loading(false);
   }
   state.planDetected = detected;
   await loadWeeklyGuide(detected);
 }
 async function loadWeeklyGuide(guideContext) {
   try {
-    const guide = await post("/api/cleaning-guide", { locale: "ko-KR", area_hint: guideContext.area, visible_categories: guideContext.categories, cleaning_focus: guideContext.focus, user_confirmed: true, observations: [] });
-    state.planGuide = { area: guideContext.area, mode: guide.mode, detected: guideContext.detected, steps: guide.steps || [] };
+    const guide = await post("/api/cleaning-guide", { locale: "ko-KR", area_hint: guideContext.area, visible_categories: guideContext.categories, cleaning_focus: guideContext.focus, user_confirmed: true, observations: [] }, 8000);
+    state.planGuide = { area: guideContext.area, mode: guide.mode, detected: guideContext.detected, manual: guideContext.manual, steps: guide.steps || [] };
   } catch {
-    state.planGuide = { area: guideContext.area, mode: "local_fallback", detected: guideContext.detected, steps: [
+    state.planGuide = { area: guideContext.area, mode: "local_fallback", detected: guideContext.detected, manual: guideContext.manual, steps: [
       { instruction: "주변을 비우기", detail: "오늘 정한 작은 범위만 보이게 해요." },
       { instruction: "눈에 보이는 것부터 닦기", detail: "부드러운 천으로 한 방향씩 가볍게 닦아요." },
       { instruction: "물기와 도구 정리", detail: "남은 물기를 걷고 사용한 도구를 제자리에 둬요." },

@@ -241,6 +241,22 @@ def test_weekly_photo_uses_ai_observed_area_before_loading_a_guide() -> None:
     assert "사진 판정의 정답이 아닙니다" in backend
 
 
+def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    backend = (ROOT / "server.py").read_text(encoding="utf-8")
+    vercel = (ROOT / "vercel.json").read_text(encoding="utf-8")
+    assert "1280 / Math.max(original.width, original.height)" in script
+    assert 'canvas.toDataURL("image/jpeg", .72)' in script
+    assert "AbortController" in script
+    assert "timeoutMs = 35000" in script
+    assert "loading(false);" in script
+    assert 'id="weeklyAreaOverride"' in script
+    assert 'image_detail = "low" if mode == "cleaning_area" else "high"' in backend
+    assert 'urlopen(req, timeout=25)' in backend
+    assert 'status_code=503' in backend
+    assert '"maxDuration": 60' in vercel
+
+
 def test_garden_has_a_house_path_and_crop_plots_without_sprout_captions() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")

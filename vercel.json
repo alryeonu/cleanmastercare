@@ -3,7 +3,8 @@
     "clean-master": {
       "root": ".",
       "entrypoint": "server.py",
-      "buildCommand": "pip install -r requirements.txt"
+      "buildCommand": "pip install -r requirements.txt",
+      "maxDuration": 60
     }
   },
   "rewrites": [

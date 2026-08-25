@@ -141,20 +141,21 @@ def call_openai(mode: str, images: list[str], context: dict[str, Any] | None = N
     else:
         context_text = f"\n사용자 선택 장소: {area}. 사용자 선택 분류: {', '.join(categories) or '없음'}. 사용자 선택 핵심 문제: {focus}. 이 선택 범위만 고려하세요."
     content: list[dict[str, Any]] = [{"type": "input_text", "text": PROMPTS[mode] + context_text}]
-    content.extend({"type": "input_image", "image_url": image, "detail": "high"} for image in images)
+    image_detail = "low" if mode == "cleaning_area" else "high"
+    content.extend({"type": "input_image", "image_url": image, "detail": image_detail} for image in images)
     last_error = "AI 분석에 실패했습니다."
     for model in models[:2]:
         payload = {
             "model": model,
             "store": False,
-            "reasoning": {"effort": "high"},
+            "reasoning": {"effort": "low" if mode == "cleaning_area" else "high"},
             "input": [{"role": "user", "content": content}],
             "text": {"format": {"type": "json_schema", "name": f"clean_master_{mode}", "strict": True, "schema": ANALYSIS_SCHEMAS[mode]}},
             "max_output_tokens": 1200,
         }
         req = urllib.request.Request(OPENAI_URL, data=json.dumps(payload).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
+            with urllib.request.urlopen(req, timeout=25) as response:
                 body = json.loads(response.read().decode())
             result = json.loads(extract_output_text(body))
             if mode == "cleaning_area":
@@ -443,8 +444,13 @@ def health() -> dict[str, Any]:
 
 @app.post("/api/analyze")
 async def analyze(request: Request) -> dict[str, Any]:
-    payload = await request.json()
-    return analyze_images(str(payload.get("mode", "")), payload.get("images", []), payload.get("context"))
+    try:
+        payload = await request.json()
+        return analyze_images(str(payload.get("mode", "")), payload.get("images", []), payload.get("context"))
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except Exception:
+        return JSONResponse(status_code=503, content={"error": "AI 분석을 완료하지 못했어요. 직접 선택해서 계속할 수 있어요."})
 
 
 @app.post("/api/cleaning-guide")
