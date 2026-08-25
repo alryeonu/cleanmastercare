@@ -217,6 +217,32 @@ def test_weekly_tracker_replaces_step_by_step_cleaning_flow() -> None:
     assert 'data-view="history"' not in markup
 
 
+def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert "photoMarkup" in script
+    assert 'alt="${label} 미리보기"' in script
+    assert 'guide.steps.slice(0, 6)' in script
+    assert 'SUPABASE CLEANING GUIDE' in script
+    assert 'id="gardenSparkles"' in markup
+    assert "state.gardenCelebration = true" in script
+    assert 'showView("room")' in script
+    assert "coupang" not in script.lower()
+
+
+def test_garden_has_a_house_path_and_crop_plots_without_sprout_captions() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert 'class="garden-house"' in markup
+    assert 'class="farm-path"' in markup
+    assert 'class="garden-bed-grid"' in markup
+    assert "GARDEN_CROPS" in script
+    assert '$("#gardenStageLabel").textContent = hasCrop ? "" : stage.label;' in script
+    assert ".garden-bed-grid" in styles
+    assert ".garden-sparkles.show" in styles
+
+
 def test_farm_hint_is_an_encouragement_not_a_gesture_instruction() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert "오늘의 작은 돌봄도 충분해요" in markup

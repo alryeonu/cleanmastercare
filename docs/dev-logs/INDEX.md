@@ -44,3 +44,4 @@
 - [2026-08-25 · 기억의 조각과 기억나무 보상](2026-08-25-045-memory-tree-rewards.md)
 - [2026-08-25 · 단순 텃밭과 한 화면 청소 안내](2026-08-25-046-simple-garden-and-guide.md)
 - [2026-08-25 · 주간 돌봄 트래커와 집 앞 텃밭](2026-08-25-047-weekly-care-tracker.md)
+- [2026-08-25 · 주간 청소 절차와 돌봄농장 완성 연출](2026-08-25-048-weekly-guide-garden-celebration.md)
