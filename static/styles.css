@@ -281,3 +281,5 @@ html,body,button,input,select,textarea{font-family:var(--body-font)}
 @media(max-width:480px){.memory-tree-grid .active-memory-tree{max-width:100%;transform:scale(.32)}.memory-tree-grid .active-memory-tree[data-stage="seed"]{transform:scale(.27)}.memory-tree-grid .active-memory-tree[data-stage="sprout"]{transform:scale(.29)}.memory-tree-grid .active-memory-tree[data-stage="branching"]{transform:scale(.31)}.memory-tree-grid .active-memory-tree[data-stage="leafy"],.memory-tree-grid .active-memory-tree[data-stage="fruiting"],.memory-tree-grid .active-memory-tree[data-stage="ripe"]{transform:scale(.34)}}
 
 .memory-tree-grid .active-memory-tree,.memory-tree-grid .active-memory-tree[data-stage="leafy"],.memory-tree-grid .active-memory-tree[data-stage="fruiting"],.memory-tree-grid .active-memory-tree[data-stage="ripe"]{animation:none}
+
+@media(max-width:480px){.memory-tree-grid .active-memory-tree{margin-left:-42px}}
