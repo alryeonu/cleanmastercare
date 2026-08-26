@@ -21,6 +21,8 @@ const STORE = {
   weeklyPlan: "clean_master.weekly_plan.v1",
   gardenCrop: "clean_master.garden_crop.v1",
   gardenPlants: "clean_master.garden_plants.v1",
+  careForest: "clean_master.care_forest.v1",
+  careForestMigration: "clean_master.care_forest_migration.v1",
 };
 const AUTH = {
   accounts: "clean_master.local_accounts.v1",
@@ -33,8 +35,18 @@ const LABELS = {
   focus: { water_scale: "물때·광물 자국", soap_scum: "비누막", grease: "기름때", dust: "먼지·부스러기", clutter: "물건 정리", laundry: "세탁할 천·의류", unknown: "직접 확인 필요" },
 };
 const CARE_STEP_MEMORY = 3;
+const CARE_POINTS_PER_MISSION = 3;
+const CARE_TREE_TARGET = 15;
 const MEMORY_PLANT_COST = 1;
 const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false };
+
+const CARE_BENEFITS = [
+  { benefitId: "microfiber-cloth", benefitType: "product_link", benefitTitle: "극세사 청소 천 찾아보기", benefitDescription: "작은 표면을 부드럽게 닦을 때 참고할 수 있는 제품군이에요.", productQuery: "극세사 청소 천", couponCode: null, expiresAt: null },
+  { benefitId: "rubber-gloves", benefitType: "product_link", benefitTitle: "고무장갑 찾아보기", benefitDescription: "물과 청소 도구를 다룰 때 손을 보호하는 제품군이에요.", productQuery: "청소용 고무장갑", couponCode: null, expiresAt: null },
+  { benefitId: "bathroom-tools", benefitType: "product_link", benefitTitle: "욕실 청소용품 찾아보기", benefitDescription: "욕실의 작은 범위를 관리할 때 참고할 수 있는 제품군이에요.", productQuery: "욕실 청소용품", couponCode: null, expiresAt: null },
+  { benefitId: "laundry-care", benefitType: "product_link", benefitTitle: "세탁 관리 용품 찾아보기", benefitDescription: "세탁세제와 산소계 표백제 제품군을 둘러볼 수 있어요.", productQuery: "세탁세제 산소계 표백제", couponCode: null, expiresAt: null },
+  { benefitId: "laundry-net-basket", benefitType: "product_link", benefitTitle: "세탁망·정리 바구니 찾아보기", benefitDescription: "세탁과 정리에 도움 되는 제품군을 둘러볼 수 있어요.", productQuery: "세탁망 정리 바구니", couponCode: null, expiresAt: null },
+];
 
 const DECOR_ITEMS = [
   { id: "scarecrow", icon: "🌾", title: "밀짚 허수아비", body: "사람 캐릭터와 헷갈리지 않는 볏짚 표식이에요.", cost: 15 },
@@ -78,6 +90,58 @@ function profileStoreKey(key) {
 }
 function read(key, fallback) { return rawRead(profileStoreKey(key), fallback); }
 function write(key, value) { rawWrite(profileStoreKey(key), value); }
+function emptyCareForest() { return { totalCarePoints: 0, activeTreePoints: 0, activeTreeRecords: [], orchardTrees: [] }; }
+function treeRecordFromMission(record = {}) {
+  const area = record.area || record.plannedArea || "other";
+  return {
+    id: record.id || `care-${Date.now()}`,
+    date: record.date || new Date().toISOString(),
+    space: LABELS.area[area] || "돌본 공간",
+    title: record.title || record.missionTitle || `${LABELS.area[area] || "공간"} 돌봄`,
+    mode: record.mode || record.modeLabel || "일반 모드",
+    afterPhoto: record.afterThumbnail || record.afterPhoto || null,
+    analysisSummary: record.analysisSummary || "사진에서 보이는 공간을 확인해 청소 안내를 이어갔어요.",
+    guideSummary: record.guideSummary || "오늘 할 수 있는 작은 청소 행동을 기록했어요.",
+  };
+}
+function hasCareTreeRecord(forest, id) {
+  return forest.activeTreeRecords.some((record) => record.id === id)
+    || forest.orchardTrees.some((tree) => (tree.records || []).some((record) => record.id === id));
+}
+function appendCareTreeRecord(forest, sourceRecord) {
+  const record = treeRecordFromMission(sourceRecord);
+  if (hasCareTreeRecord(forest, record.id)) return { forest, completedTree: null, added: false };
+  const next = {
+    ...forest,
+    totalCarePoints: Math.max(0, Number(forest.totalCarePoints) || 0) + CARE_POINTS_PER_MISSION,
+    activeTreePoints: Math.min(CARE_TREE_TARGET, Math.max(0, Number(forest.activeTreePoints) || 0) + CARE_POINTS_PER_MISSION),
+    activeTreeRecords: [...(forest.activeTreeRecords || []), record],
+    orchardTrees: Array.isArray(forest.orchardTrees) ? forest.orchardTrees : [],
+  };
+  let completedTree = null;
+  if (next.activeTreePoints >= CARE_TREE_TARGET) {
+    completedTree = { id: `tree-${Date.now()}-${record.id}`, completedAt: new Date().toISOString(), pointsEarned: CARE_TREE_TARGET, records: next.activeTreeRecords.slice(-5), selectedBenefit: null, fruitState: "ripe" };
+    next.orchardTrees = [completedTree, ...next.orchardTrees];
+    next.activeTreePoints = 0;
+    next.activeTreeRecords = [];
+  }
+  return { forest: next, completedTree, added: true };
+}
+function careForest() {
+  const saved = read(STORE.careForest, null);
+  if (saved && Array.isArray(saved.activeTreeRecords) && Array.isArray(saved.orchardTrees)) return { ...emptyCareForest(), ...saved, activeTreePoints: Math.max(0, Math.min(CARE_TREE_TARGET, Number(saved.activeTreePoints) || 0)) };
+  const completed = read(STORE.history, []).filter((record) => record.completed && (record.plannedCompleted || record.beforeAfter)).sort((a, b) => new Date(a.date) - new Date(b.date));
+  let forest = emptyCareForest();
+  completed.forEach((record) => { forest = appendCareTreeRecord(forest, record).forest; });
+  write(STORE.careForest, forest);
+  write(STORE.careForestMigration, true);
+  return forest;
+}
+function addMissionToCareForest(record) {
+  const result = appendCareTreeRecord(careForest(), record);
+  if (result.added) write(STORE.careForest, result.forest);
+  return result;
+}
 async function passwordHash(password) {
   const bytes = new TextEncoder().encode(password);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -358,7 +422,9 @@ function reward(id, amount, title) {
 
 function updateCounters() {
   const cash = Number(read(STORE.cash, 0));
+  const forest = careForest();
   $$('[data-cash]').forEach((el) => el.textContent = cash);
+  $$('[data-care-points]').forEach((el) => el.textContent = forest.totalCarePoints);
   $$('[data-returns]').forEach((el) => el.textContent = Number(read(STORE.returns, 0)));
   $$('[data-badges]').forEach((el) => el.textContent = Number(read(STORE.badges, 0)));
 }
@@ -1030,64 +1096,68 @@ function renderComparisonChecklist(checks, evidence, pairHash) {
   return done.length;
 }
 
-const GARDEN_STAGES = [
-  { label: "텃밭", icon: "▦", title: "텃밭에서 시작해요", message: "첫 청소 미션을 마치면 기억의 조각 씨앗이 심어져요." },
-  { label: "기억의 조각 씨앗", icon: "✦", title: "기억의 조각 씨앗이 심어졌어요", message: "첫 미션에서 남긴 조각이 텃밭의 시작이 되었어요." },
-  { label: "새싹", icon: "🌱", title: "새싹이 올라왔어요", message: "청소 미션을 하나 더 마치면 새싹이 자라요." },
-  { label: "작은 나무", icon: "🌳", title: "작은 나무가 되었어요", message: "작은 행동이 차곡차곡 나무의 줄기가 되고 있어요." },
-  { label: "큰 나무", icon: "🌲", title: "큰 나무가 자랐어요", message: "계속 이어온 돌봄이 텃밭을 든든하게 채워요." },
-  { label: "과수원", icon: "🍎", title: "나만의 과수원이 되었어요", message: "청소 미션으로 남긴 기억이 풍성한 과수원이 되었어요." },
-];
-const GARDEN_CROPS = [
-  { name: "토마토", sprout: "🌱", tree: "🍅" },
-  { name: "딸기", sprout: "🌱", tree: "🍓" },
-  { name: "바질", sprout: "🌱", tree: "🌿" },
-  { name: "당근", sprout: "🌱", tree: "🥕" },
-];
-function randomGardenCrop() {
-  return GARDEN_CROPS[Math.floor(Math.random() * GARDEN_CROPS.length)];
+function activeTreeStage(points) {
+  if (points >= 12) return "fruiting";
+  if (points >= 9) return "flowering";
+  if (points >= 6) return "leafy";
+  if (points >= 3) return "sprout";
+  return "seed";
 }
-function gardenPlantsForCompletedMissions() {
-  const completed = completedGardenMissions();
-  const plants = read(STORE.gardenPlants, []);
-  while (plants.length < completed) plants.push(randomGardenCrop());
-  const bounded = plants.slice(0, 4);
-  write(STORE.gardenPlants, bounded);
-  return bounded;
+function treeRecordMarkup(record) {
+  const photo = record.afterPhoto && (record.mode.includes("NORMAL") || record.mode === "일반 모드") ? `<img src="${record.afterPhoto}" alt="${escapeHtml(record.space)} 청소 후 사진">` : "";
+  return `<article class="tree-record-card ${photo ? "has-photo" : ""}">${photo}<div><small>${new Date(record.date).toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })} · ${escapeHtml(record.mode)}</small><h4>${escapeHtml(record.space)} · ${escapeHtml(record.title)}</h4><p><b>사진에서 확인한 내용</b> ${escapeHtml(record.analysisSummary)}</p><p><b>오늘의 안내</b> ${escapeHtml(record.guideSummary)}</p></div></article>`;
 }
-function plantRandomGardenSeed() {
-  const plants = read(STORE.gardenPlants, []);
-  if (plants.length >= 4) return;
-  plants.push(randomGardenCrop());
-  write(STORE.gardenPlants, plants);
+function openTreeDialog(treeId) {
+  const forest = careForest();
+  const active = treeId === "active";
+  const tree = active ? { id: "active", records: forest.activeTreeRecords, pointsEarned: forest.activeTreePoints, fruitState: "growing" } : forest.orchardTrees.find((item) => item.id === treeId);
+  if (!tree) return;
+  const dialog = $("#treeDialog");
+  const records = tree.records || [];
+  $("#treeDialogTitle").textContent = active ? "자라고 있는 기억나무" : "잘 익은 기억의 열매";
+  $("#treeDialogLead").textContent = active
+    ? `이번 나무에 돌봄 ${tree.pointsEarned}포인트가 쌓였어요. 지금까지의 작은 돌봄을 돌아볼 수 있어요.`
+    : `이 열매에는 청소 미션 ${records.length}번의 돌봄 기록이 담겨 있어요.`;
+  $("#treeDialogRecords").innerHTML = records.length ? records.map(treeRecordMarkup).join("") : '<p class="empty">첫 청소 미션을 마치면 이 나무에 기록이 쌓여요.</p>';
+  const benefit = tree.selectedBenefit;
+  $("#treeBenefitPanel").innerHTML = active ? "" : benefit
+    ? `<section class="tree-benefit-selected"><span class="kicker">이번 열매의 돌봄 혜택</span><h3>${escapeHtml(benefit.benefitTitle)}</h3><p>${escapeHtml(benefit.benefitDescription)}</p><a class="primary" target="_blank" rel="noopener noreferrer" href="https://www.coupang.com/np/search?q=${encodeURIComponent(benefit.productQuery || "청소용품")}">쿠팡에서 보기 <span aria-hidden="true">↗</span></a></section>`
+    : `<section class="tree-benefit-picker"><span class="kicker">이번 열매의 돌봄 혜택</span><h3>청소에 도움 되는 한 가지를 골라보세요</h3><p>포인트는 사용되지 않으며, 선택한 제품군의 쿠팡 검색 결과를 새 탭으로 열어요.</p><div>${CARE_BENEFITS.map((item) => `<button type="button" data-select-tree-benefit="${item.benefitId}"><b>${escapeHtml(item.benefitTitle)}</b><small>${escapeHtml(item.benefitDescription)}</small></button>`).join("")}</div></section>`;
+  $$('[data-select-tree-benefit]', $("#treeBenefitPanel")).forEach((button) => button.addEventListener("click", () => selectTreeBenefit(tree.id, button.dataset.selectTreeBenefit)));
+  if (!dialog.open) dialog.showModal();
 }
-
-function completedGardenMissions() {
-  return read(STORE.history, []).filter((record) => record.completed && (record.beforeAfter || record.plannedCompleted)).length;
+function selectTreeBenefit(treeId, benefitId) {
+  const benefit = CARE_BENEFITS.find((item) => item.benefitId === benefitId);
+  const forest = careForest();
+  const index = forest.orchardTrees.findIndex((tree) => tree.id === treeId);
+  if (!benefit || index < 0 || forest.orchardTrees[index].selectedBenefit) return;
+  const selectedBenefit = { ...benefit, selectedAt: new Date().toISOString(), expiresAt: null };
+  forest.orchardTrees[index] = { ...forest.orchardTrees[index], selectedBenefit };
+  write(STORE.careForest, forest);
+  window.open(`https://www.coupang.com/np/search?q=${encodeURIComponent(selectedBenefit.productQuery)}`, "_blank", "noopener");
+  renderRoom();
+  openTreeDialog(treeId);
 }
-
 function renderRoom() {
-  if (!$("#gardenPlantSlots")) return;
-  const progress = Math.min(5, completedGardenMissions());
-  const stage = GARDEN_STAGES[progress];
-  const plants = gardenPlantsForCompletedMissions();
-  $(".simple-garden").dataset.gardenStage = String(progress);
-  $("#gardenPlantSlots").innerHTML = Array.from({ length: 4 }, (_, index) => {
-    const plant = plants[index];
-    return `<div class="garden-bed-slot ${plant ? "planted" : ""}" aria-label="${plant ? "새싹이 심어진 밭" : "비어 있는 밭"}"><span aria-hidden="true">${plant ? plant.sprout : ""}</span></div>`;
-  }).join("");
+  if (!$("#activeMemoryTree")) return;
+  const forest = careForest();
+  const points = forest.activeTreePoints;
+  const stage = activeTreeStage(points);
+  $(".simple-garden").dataset.gardenStage = stage;
+  $("#activeMemoryTree").dataset.stage = stage;
+  $("#activeMemoryTree").setAttribute("aria-label", `현재 성장 중인 나무, 돌봄 ${points}포인트. 기록 보기`);
+  $("#gardenOrchard").innerHTML = forest.orchardTrees.slice(0, 8).map((tree) => `<button type="button" class="orchard-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매 기록 보기"><span class="tree-crown"></span><i>●</i></button>`).join("");
   const decorations = [];
-  if (progress >= 1) decorations.push('<span class="garden-flower-patch flower-left">🌼 🌷</span>');
-  if (progress >= 2) decorations.push('<span class="garden-scarecrow">🌾</span>');
-  if (progress >= 3) decorations.push('<span class="garden-pond">🦆</span>');
-  if (progress >= 4) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
+  if (forest.orchardTrees.length) decorations.push('<span class="garden-flower-patch flower-left">🌼 🌷</span>');
+  if (forest.orchardTrees.length >= 2) decorations.push('<span class="garden-pond">🦆</span>');
+  if (forest.orchardTrees.length >= 3) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
   $("#gardenDecorations").innerHTML = decorations.join("");
   $("#gardenSparkles")?.classList.toggle("show", state.gardenCelebration);
-  $("#roomTitle").textContent = stage.title;
-  $("#roomMessage").textContent = stage.message;
-  $("#roomProgressCount").textContent = progress;
-  $("#roomProgressBar").style.width = `${(progress / 5) * 100}%`;
-  $$(".garden-stage-list li").forEach((item, index) => item.classList.toggle("active", index <= progress));
+  $("#treeInfo").textContent = points ? `이번 나무에 돌봄 ${points}포인트가 쌓였어요` : "새 나무가 다음 돌봄을 기다리고 있어요";
+  $("#treeProgressDots").innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${points / CARE_POINTS_PER_MISSION > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
+  $("#treeNext").textContent = `다음 열매까지 청소 미션 ${5 - (points / CARE_POINTS_PER_MISSION)}번`;
+  $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => openTreeDialog(button.dataset.openTree)));
+  $("#activeMemoryTree").onclick = () => openTreeDialog("active");
 }
 
 const roomSurface = $(".care-room");
@@ -1259,30 +1329,29 @@ async function completePlanTask(task) {
   const afterThumbnail = await afterPhotoThumbnail(state.planAfterPhoto);
   const list = read(STORE.history, []);
   const planMode = activeWeeklyPlan()?.mode === "easy" ? "easy" : "normal";
-  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", modeLabel: planMode === "easy" ? "주간 돌봄 · EASY" : "주간 돌봄 · NORMAL", encouragement: improved ? "오늘의 작은 돌봄이 텃밭에 새싹 하나를 심었어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, afterThumbnail, improved };
+  const guideSteps = state.planGuide?.steps || [];
+  const record = { id: `weekly-${task.date}`, date: new Date().toISOString(), area: state.planGuide?.area || task.area, plannedArea: task.area, categories: ["clean"], guideType: "weekly_tracker", title: `${LABELS.area[task.area]} 돌봄`, missionTitle: task.task, mode: planMode === "easy" ? "EASY" : "NORMAL", modeLabel: planMode === "easy" ? "주간 돌봄 · EASY" : "주간 돌봄 · NORMAL", encouragement: improved ? "오늘의 작은 돌봄이 기억나무에 차곡차곡 쌓였어요." : "오늘의 돌봄을 기록했어요. 다음에도 부담 없는 한 가지면 충분해요.", completed: true, beforeAfter: true, plannedCompleted: true, photoRecorded: true, afterThumbnail, improved, analysisSummary: state.planDetected?.focus ? `사진에서 ${LABELS.focus[state.planDetected.focus] || "청소가 필요한 흔적"} 후보를 확인했어요.` : "사진에서 오늘 돌볼 공간을 확인했어요.", guideSummary: guideSteps.slice(0, planMode === "easy" ? 2 : 1).map((step) => step.instruction || step.title).filter(Boolean).join(" · ") || task.task };
   const index = list.findIndex((item) => item.id === record.id);
   if (index >= 0) list[index] = record; else list.unshift(record);
   write(STORE.history, list.slice(0, 50));
+  const treeResult = addMissionToCareForest(record);
   reward(`weekly-plan-${task.date}`, 3, `${LABELS.area[task.area]} 주간 돌봄 기록`);
-  if (improved) plantRandomGardenSeed();
   state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null; state.planDetected = null;
   renderWeeklyPlan(); renderCash();
-  if (improved) {
-    state.gardenCelebration = true;
-    showView("room");
-    setTimeout(() => { state.gardenCelebration = false; renderRoom(); }, 2800);
-    toast("개선된 모습을 확인했어요. 텃밭에 새싹이 심어졌어요.");
-  } else {
-    renderRoom();
-    toast("오늘의 돌봄을 기록했어요. 다음에도 비슷한 구도로 남겨보세요.");
-  }
+  state.gardenCelebration = !!treeResult.completedTree;
+  showView("room");
+  if (treeResult.completedTree) {
+    setTimeout(() => { state.gardenCelebration = false; renderRoom(); openTreeDialog(treeResult.completedTree.id); }, 2800);
+    toast("기억의 열매가 완성됐어요. 5번의 돌봄 기록을 열어볼까요?");
+  } else toast("오늘의 돌봄 3포인트가 현재 기억나무에 쌓였어요.");
 }
 
 function renderCash() {
   updateCounters();
-  const events = cashEvents().filter((e) => e.amount !== 0);
+  const forest = careForest();
+  const events = [...forest.orchardTrees.flatMap((tree) => tree.records), ...forest.activeTreeRecords].sort((a, b) => new Date(b.date) - new Date(a.date));
   $("#cashEvents").className = events.length ? "" : "empty";
-  $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.title)}</b><br><small>${new Date(e.at).toLocaleString("ko-KR")}</small></div><strong class="${e.amount < 0 ? "spent" : "earned"}">${e.amount > 0 ? "+" : ""}${e.amount}조각</strong></div>`).join("") : "아직 기억의 조각 내역이 없어요.";
+  $("#cashEvents").innerHTML = events.length ? events.map((e) => `<div class="event-row"><div><b>${escapeHtml(e.space)} · ${escapeHtml(e.title)}</b><br><small>${new Date(e.date).toLocaleString("ko-KR")}</small></div><strong class="earned">+${CARE_POINTS_PER_MISSION}점</strong></div>`).join("") : "아직 돌봄 포인트 내역이 없어요.";
   $("#recordPlanCount").textContent = read(STORE.history, []).filter((record) => record.plannedCompleted).length;
   renderHistory();
 }
@@ -1390,6 +1459,7 @@ $("#communityPhoto")?.addEventListener("change", async (event) => {
 });
 $("#communityCommentForm").addEventListener("submit", submitCommunityComment);
 $("#closeCommunityDialog").addEventListener("click", () => $("#communityDialog").close());
+$("#closeTreeDialog")?.addEventListener("click", () => $("#treeDialog").close());
 $("#refreshCommunity").addEventListener("click", renderCommunity);
 $("#openCommunityWrite").addEventListener("click", () => { $("#communityWrite").scrollIntoView({ behavior: "smooth", block: "start" }); $("#communityTitle").focus({ preventScroll: true }); });
 $("#accountButton").addEventListener("click", openLogin);

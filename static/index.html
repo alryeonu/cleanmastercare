@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&amp;family=Jua&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=weekly-guide18">
+  <link rel="stylesheet" href="/assets/styles.css?v=weekly-guide19">
   <link rel="stylesheet" href="/assets/care-scope.css?v=2">
 </head>
 <body>
@@ -19,7 +19,7 @@
       <span id="apiStatus" class="status-dot">연결 확인 중</span>
       <button id="accountButton" class="account-button" type="button" aria-label="로그인 계정 설정 열기"><b id="accountNickname">로그인</b><span class="nickname-heart" aria-hidden="true">♥</span></button>
       <button id="easyToggle" class="mode-button" aria-pressed="false" aria-label="화면 확대 모드">확대 모드</button>
-      <button class="header-points" data-view="cash" aria-label="기억의 조각 보기"><span>✦</span><b data-cash>0</b><small>조각</small></button>
+      <button class="header-points" data-view="cash" aria-label="누적 돌봄 포인트 보기"><span>✦</span><b data-care-points>0</b><small>포인트</small></button>
     </div>
   </header>
 
@@ -47,10 +47,10 @@
           <button id="completeDaily" class="soft-button">해냈어요 · +3</button>
         </article>
         <article class="cash-card">
-          <span class="kicker light">MEMORY PIECES</span>
-          <strong><span data-cash>0</span><small> 기억의 조각</small></strong>
-          <p>쉬어도 괜찮아요. 다시 돌아온 행동에는 보너스를 드려요.</p>
-          <button class="link-button" data-view="cash">적립 내역 보기 →</button>
+          <span class="kicker light">CARE POINTS</span>
+          <strong><span data-care-points>0</span><small> 돌봄 포인트</small></strong>
+          <p>청소 미션을 마칠 때마다 3포인트가 나무에 쌓여요. 줄어들지 않아요.</p>
+          <button class="link-button" data-view="room">텃밭 보러 가기 →</button>
         </article>
       </div>
 
@@ -72,7 +72,7 @@
     </section>
 
     <section class="page shell" id="room">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MY MEMORY GARDEN</span><h1>나의 텃밭</h1><p>청소 미션을 마칠 때마다 기억의 조각이 텃밭에서 천천히 자라요.</p></div></div>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MY MEMORY GARDEN</span><h1>나의 텃밭</h1><p>작은 청소 행동이 차곡차곡 나무가 되고, 잘 익은 열매에는 돌봄 기록이 남아요.</p></div></div>
       <div class="room-layout farm-layout">
         <section class="care-room care-farm simple-garden" data-garden-stage="0" aria-label="청소 미션에 따라 자라는 나의 텃밭">
           <div class="farm-world">
@@ -82,28 +82,23 @@
               <div class="farm-path" aria-hidden="true"></div><div class="farm-fence" aria-hidden="true"></div>
               <div class="garden-house" aria-hidden="true"><i></i><b></b><span></span></div>
               <div id="gardenDecorations" class="garden-decorations" aria-hidden="true"></div>
-              <div class="garden-bed-grid" id="gardenPlantSlots" aria-label="집 앞 텃밭" aria-live="polite"></div><span id="gardenSparkles" class="garden-sparkles" aria-hidden="true">✦ ✧ ✦</span>
+              <div id="gardenOrchard" class="garden-orchard" aria-label="완성된 기억의 열매"></div>
+              <button id="activeMemoryTree" class="active-memory-tree" type="button" data-stage="seed"><span class="tree-crown"></span><span class="tree-fruits" aria-hidden="true">● ● ●</span><span class="tree-trunk"></span></button><span id="gardenSparkles" class="garden-sparkles" aria-hidden="true">✦ ✧ ✦</span>
             </div>
           </div>
           <span class="farm-tilt-hint" aria-hidden="true">오늘의 작은 돌봄도 충분해요</span>
         </section>
-        <aside class="room-panel card farm-panel">
-          <span class="kicker">GARDEN GROWTH</span><h2 id="roomTitle">텃밭에서 시작해요</h2><p id="roomMessage">청소 미션을 하나 마칠 때마다 기억의 조각이 다음 모습으로 자라요.</p>
-          <div class="room-progress"><i><b id="roomProgressBar"></b></i><strong><span id="roomProgressCount">0</span> / 5</strong></div>
-          <ol class="garden-stage-list" aria-label="텃밭 성장 단계"><li>텃밭</li><li>기억의 조각 씨앗</li><li>새싹</li><li>작은 나무</li><li>큰 나무</li><li>과수원</li></ol>
-          <p class="garden-note">따로 고르거나 물을 줄 필요 없이, 청소 미션을 마치면 텃밭이 자라요.</p>
-          <button class="primary room-cta" data-view="mission">청소 미션 시작하기</button>
-        </aside>
       </div>
+      <section class="tree-info-bar card"><div><span class="kicker">CURRENT MEMORY TREE</span><b id="treeInfo">새 나무가 다음 돌봄을 기다리고 있어요</b></div><div class="tree-progress"><span id="treeProgressDots" aria-label="현재 나무 성장 진행"></span><small id="treeNext">다음 열매까지 청소 미션 5번</small></div><button class="primary room-cta" data-view="mission">오늘의 청소 시작하기</button></section>
       <div class="room-promise farm-promise"><span>🌱</span><div><b>한 번 자란 텃밭은 시들지 않아요.</b><p>며칠 쉬어도 기억의 조각과 텃밭의 모습은 그대로예요. 다시 돌아온 날부터 이어서 돌볼 수 있어요.</p></div></div>
     </section>
 
     <section class="page shell" id="cash">
-      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">MEMORY PIECES</span><h1>행동이 남긴 기억의 조각</h1><p>청소를 시작하고 한 단계를 마주한 순간이 조각으로 남아 기억나무의 씨앗이 돼요.</p></div></div>
-      <div class="cash-hero"><div><span>간직한 조각</span><strong><span data-cash>0</span>개</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
-      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY CARE RECORD</span><h2>기억과 기록을 한곳에</h2><p>이번 주 계획을 지킨 순간과 기억의 조각을 함께 볼 수 있어요.</p><div class="collection-pill">완료한 계획 <b id="recordPlanCount">0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🏡</div><div><span>집 앞 나의 텃밭</span><button class="link-button" data-view="room">텃밭 보러 가기 →</button></div></div><div class="spend-balance"><span>간직한 기억</span><strong><span data-cash>0</span>조각</strong></div></section>
+      <div class="page-head"><button class="back reset" data-view="home">←</button><div><span class="kicker">CARE RECORD</span><h1>돌봄이 남긴 기억</h1><p>청소 미션 5번이 쌓이면 기억의 열매가 되고, 그 안에 나의 돌봄 기록이 남아요.</p></div></div>
+      <div class="cash-hero"><div><span>누적 돌봄 포인트</span><strong><span data-care-points>0</span>점</strong></div><div><span>다시 시작한 날</span><strong><span data-returns>0</span>회</strong></div><div><span>인증 배지</span><strong><span data-badges>0</span>개</strong></div></div>
+      <section class="spend-intro card"><div class="spend-copy"><span class="kicker">MY CARE RECORD</span><h2>기억과 기록을 한곳에</h2><p>완료한 청소 미션은 나무와 열매의 기록으로 계속 남아요.</p><div class="collection-pill">완료한 계획 <b id="recordPlanCount">0</b>개</div></div><div class="world-mini-card farm-mini-card"><div class="mini-farm-icon">🏡</div><div><span>집 앞 나의 텃밭</span><button class="link-button" data-view="room">텃밭 보러 가기 →</button></div></div><div class="spend-balance"><span>누적 돌봄</span><strong><span data-care-points>0</span>점</strong></div></section>
       <div class="card return-note"><span class="kicker">WELCOME BACK MEMORY</span><h2>쉬었다 돌아와도 실패가 아니에요.</h2><p>이틀 이상 쉬었다가 사진을 찍거나 생활 돌봄 미션을 완료하면 기억의 조각 5개를 남겨요. 연속 출석과 끊김은 표시하지 않아요.</p></div>
-      <div class="card"><h2>기억의 조각 내역</h2><div id="cashEvents" class="empty">아직 기억의 조각 내역이 없어요.</div></div>
+      <div class="card"><h2>돌봄 포인트 내역</h2><div id="cashEvents" class="empty">아직 돌봄 포인트 내역이 없어요.</div></div>
       <section class="record-section card"><div class="history-toolbar"><div><span class="kicker">CARE RECORD</span><h2>돌봄 기록</h2><span id="historyCount">0개의 기록</span></div><button id="clearHistory" class="text-button danger">전체 삭제</button></div><div id="historyList" class="history-list empty">아직 기록이 없어요.</div></section>
     </section>
 
@@ -119,6 +114,13 @@
       <article class="community-thread"><h2 id="communityDialogTitle">익명 이야기</h2><img id="communityDialogPhoto" class="community-dialog-photo" alt="게시글 첨부 사진" hidden><p id="communityDialogBody"></p><small id="communityDialogMeta">익명 · 오늘</small></article>
       <section class="community-comments" aria-labelledby="communityCommentsTitle"><h3 id="communityCommentsTitle">익명 댓글</h3><div id="communityCommentList" aria-live="polite"></div></section>
       <form id="communityCommentForm" class="community-comment-form" novalidate><input id="communityCommentPostId" type="hidden"><label>댓글<textarea id="communityCommentBody" rows="3" minlength="2" maxlength="300" placeholder="개인정보 없이, 다정한 익명 댓글을 남겨주세요." required></textarea></label><div><small>댓글은 서버를 다시 시작하면 사라지며, 사진·이름·연락처는 적지 말아주세요.</small><button class="primary" type="submit">익명 댓글 등록</button></div></form>
+    </dialog>
+
+    <dialog id="treeDialog" class="tree-dialog" aria-labelledby="treeDialogTitle">
+      <div class="tree-dialog-head"><div><span class="kicker">MEMORY TREE RECORD</span><h2 id="treeDialogTitle">기억나무</h2></div><button id="closeTreeDialog" class="back reset" type="button" aria-label="기억나무 기록 닫기">×</button></div>
+      <p id="treeDialogLead" class="tree-dialog-lead"></p>
+      <div id="treeDialogRecords" class="tree-record-list"></div>
+      <div id="treeBenefitPanel"></div>
     </dialog>
 
     <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
@@ -139,7 +141,7 @@
   <nav class="bottom-nav five-nav" aria-label="주요 메뉴"><button class="active" data-view="home"><span>⌂</span>홈</button><button data-view="mission"><span>▦</span>이번 주</button><button data-view="room"><span>🌱</span>텃밭</button><button data-view="community"><span>♡</span>이야기</button><button data-view="cash"><span>✦</span>기록·기억</button></nav>
   <div id="loading" class="loading hidden" role="status" aria-live="polite"><i></i><strong id="loadingText">사진을 살펴보고 있어요</strong><div id="loadingProgress" class="loading-progress" role="progressbar" aria-label="사진 확인 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><b id="loadingProgressBar"></b></div><small id="loadingPercent">0% · 잠시만 기다려주세요.</small></div>
   <div id="toast" class="toast" role="alert"></div>
-  <script src="/assets/product-links.js?v=weekly-guide18"></script>
-  <script src="/assets/app.js?v=weekly-guide18"></script>
+  <script src="/assets/product-links.js?v=weekly-guide19"></script>
+  <script src="/assets/app.js?v=weekly-guide19"></script>
 </body>
 </html>

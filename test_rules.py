@@ -164,25 +164,24 @@ def test_photo_checklist_reuses_the_care_step_reward_and_daily_key() -> None:
     assert "reward(`photo-mission-${pairHash}-${key}`, 3" not in source
 
 
-def test_memory_pieces_grow_a_single_garden_without_a_seed_shop() -> None:
+def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
-    assert "기억의 조각" in markup
-    assert "포인트" not in markup
-    assert "포인트" not in source
+    assert "돌봄 포인트" in markup
+    assert "const CARE_POINTS_PER_MISSION = 3;" in source
+    assert "const CARE_TREE_TARGET = 15;" in source
+    assert "activeTreePoints" in source
+    assert "orchardTrees" in source
     assert 'id="seedShop"' not in markup
     assert 'data-spend-tab="seed"' not in markup
     assert "function buySeed" not in source
     assert "data-buy-seed" not in source
     assert "const LEGACY_SEED_VALUES" in source
     assert "기존 씨앗을 기억의 조각으로 전환" in source
-    assert "const GARDEN_STAGES" in source
-    assert "completedGardenMissions" in source
-    assert "기억의 조각 씨앗" in markup
-    assert "새싹" in markup
-    assert "작은 나무" in markup
-    assert "큰 나무" in markup
-    assert "과수원" in markup
+    assert "function activeTreeStage" in source
+    assert 'id="activeMemoryTree"' in markup
+    assert 'id="gardenOrchard"' in markup
+    assert 'class="garden-stage-list"' not in markup
     assert 'data-crop-plot' not in markup
     assert 'id="plantSeed"' not in markup
     assert 'id="waterCrop"' not in markup
@@ -195,11 +194,12 @@ def test_locked_farm_items_do_not_leave_ghost_images() -> None:
     assert ".farm-item{opacity:.12;" not in source
 
 
-def test_single_garden_starts_as_a_plain_vegetable_patch() -> None:
+def test_single_garden_centers_the_active_memory_tree() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'class="care-room care-farm simple-garden"' in markup
-    assert "텃밭에서 시작해요" in source
+    assert 'id="treeInfo"' in markup
+    assert "새 나무가 다음 돌봄을 기다리고 있어요" in source
     assert 'class="unlock-list"' not in markup
     assert 'class="farmer-customizer"' not in markup
 
@@ -225,7 +225,7 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert 'guide.steps.slice(0, planMode === "easy" ? 2 : 6)' in script
     assert 'SUPABASE CLEANING GUIDE' in script
     assert 'id="gardenSparkles"' in markup
-    assert "state.gardenCelebration = true" in script
+    assert "state.gardenCelebration = !!treeResult.completedTree" in script
     assert 'showView("room")' in script
     assert "PRODUCT_CATALOG" in (ROOT / "static" / "product-links.js").read_text(encoding="utf-8")
 
@@ -298,19 +298,31 @@ def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
     assert '"maxDuration": 60' in vercel
 
 
-def test_garden_has_a_house_path_and_crop_plots_without_sprout_captions() -> None:
+def test_garden_has_a_house_path_active_tree_and_orchard_records() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
     assert 'class="garden-house"' in markup
     assert 'class="farm-path"' in markup
-    assert 'id="gardenPlantSlots"' in markup
-    assert "GARDEN_CROPS" in script
-    assert "gardenPlantsForCompletedMissions" in script
-    assert 'Array.from({ length: 4 }' in script
-    assert 'garden-bed-slot ${plant ? "planted" : ""}' in script
-    assert ".garden-bed-grid" in styles
-    assert ".garden-sparkles.show" in styles
+    assert 'id="activeMemoryTree"' in markup
+    assert 'id="gardenOrchard"' in markup
+    assert 'id="treeDialog"' in markup
+    assert "openTreeDialog" in script
+    assert "selectTreeBenefit" in script
+    assert ".active-memory-tree" in styles
+
+
+def test_memory_tree_keeps_five_records_and_a_non_consuming_product_benefit() -> None:
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    assert "totalCarePoints" in script
+    assert "activeTreeRecords" in script
+    assert "pointsEarned: CARE_TREE_TARGET" in script
+    assert "fruitState: \"ripe\"" in script
+    assert "benefitId" in script
+    assert "benefitType: \"product_link\"" in script
+    assert "selectedAt: new Date().toISOString()" in script
+    assert "window.open(`https://www.coupang.com/np/search?q=" in script
+    assert "spendMemories" not in script[script.index("function selectTreeBenefit"):script.index("function renderRoom")]
 
 
 def test_cash_page_has_no_decor_purchase_outfit_or_gift_sections() -> None:
