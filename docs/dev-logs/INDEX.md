@@ -1,5 +1,6 @@
 # 개발일지 목록
 
+- [2026-08-26 · 기억의 나무 누적 성장 그래픽](2026-08-26-067-memory-tree-cumulative-growth.md)
 - [2026-08-26 · 기억나무·열매 돌봄 보상 리팩터링](2026-08-26-066-care-tree-fruit-rewards.md)
 - [2026-08-26 · 제품 추천 카드 공간 효율화](2026-08-26-065-compact-product-recommendation-cards.md)
 - [2026-08-25 · 전후 사진 3단계 미션](2026-08-25-001-before-after-checklist.md)

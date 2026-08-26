@@ -38,7 +38,7 @@ const CARE_STEP_MEMORY = 3;
 const CARE_POINTS_PER_MISSION = 3;
 const CARE_TREE_TARGET = 15;
 const MEMORY_PLANT_COST = 1;
-const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false };
+const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false, ripeTreePreview: null };
 
 const CARE_BENEFITS = [
   { benefitId: "microfiber-cloth", benefitType: "product_link", benefitTitle: "극세사 청소 천 찾아보기", benefitDescription: "작은 표면을 부드럽게 닦을 때 참고할 수 있는 제품군이에요.", productQuery: "극세사 청소 천", couponCode: null, expiresAt: null },
@@ -1097,9 +1097,10 @@ function renderComparisonChecklist(checks, evidence, pairHash) {
 }
 
 function activeTreeStage(points) {
+  if (points >= CARE_TREE_TARGET) return "ripe";
   if (points >= 12) return "fruiting";
-  if (points >= 9) return "flowering";
-  if (points >= 6) return "leafy";
+  if (points >= 9) return "leafy";
+  if (points >= 6) return "branching";
   if (points >= 3) return "sprout";
   return "seed";
 }
@@ -1114,7 +1115,7 @@ function openTreeDialog(treeId) {
   if (!tree) return;
   const dialog = $("#treeDialog");
   const records = tree.records || [];
-  $("#treeDialogTitle").textContent = active ? "자라고 있는 기억나무" : "잘 익은 기억의 열매";
+  $("#treeDialogTitle").textContent = active ? "자라고 있는 기억의 나무" : "잘 익은 기억의 열매";
   $("#treeDialogLead").textContent = active
     ? `이번 나무에 돌봄 ${tree.pointsEarned}포인트가 쌓였어요. 지금까지의 작은 돌봄을 돌아볼 수 있어요.`
     : `이 열매에는 청소 미션 ${records.length}번의 돌봄 기록이 담겨 있어요.`;
@@ -1141,11 +1142,12 @@ function selectTreeBenefit(treeId, benefitId) {
 function renderRoom() {
   if (!$("#activeMemoryTree")) return;
   const forest = careForest();
-  const points = forest.activeTreePoints;
+  const previewTree = state.ripeTreePreview;
+  const points = previewTree ? CARE_TREE_TARGET : forest.activeTreePoints;
   const stage = activeTreeStage(points);
   $(".simple-garden").dataset.gardenStage = stage;
   $("#activeMemoryTree").dataset.stage = stage;
-  $("#activeMemoryTree").setAttribute("aria-label", `현재 성장 중인 나무, 돌봄 ${points}포인트. 기록 보기`);
+  $("#activeMemoryTree").setAttribute("aria-label", `${previewTree ? "완성된" : "현재 성장 중인"} 기억의 나무, 돌봄 ${points}포인트. 기록 보기`);
   $("#gardenOrchard").innerHTML = forest.orchardTrees.slice(0, 8).map((tree) => `<button type="button" class="orchard-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매 기록 보기"><span class="tree-crown"></span><i>●</i></button>`).join("");
   const decorations = [];
   if (forest.orchardTrees.length) decorations.push('<span class="garden-flower-patch flower-left">🌼 🌷</span>');
@@ -1153,11 +1155,11 @@ function renderRoom() {
   if (forest.orchardTrees.length >= 3) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
   $("#gardenDecorations").innerHTML = decorations.join("");
   $("#gardenSparkles")?.classList.toggle("show", state.gardenCelebration);
-  $("#treeInfo").textContent = points ? `이번 나무에 돌봄 ${points}포인트가 쌓였어요` : "새 나무가 다음 돌봄을 기다리고 있어요";
+  $("#treeInfo").textContent = previewTree ? "기억의 나무에 잘 익은 열매가 맺혔어요" : points ? `이번 나무에 돌봄 ${points}포인트가 쌓였어요` : "새 기억의 나무가 다음 돌봄을 기다리고 있어요";
   $("#treeProgressDots").innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${points / CARE_POINTS_PER_MISSION > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
-  $("#treeNext").textContent = `다음 열매까지 청소 미션 ${5 - (points / CARE_POINTS_PER_MISSION)}번`;
+  $("#treeNext").textContent = previewTree ? "이번 열매의 기록을 열어보세요" : `다음 열매까지 청소 미션 ${5 - (points / CARE_POINTS_PER_MISSION)}번`;
   $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => openTreeDialog(button.dataset.openTree)));
-  $("#activeMemoryTree").onclick = () => openTreeDialog("active");
+  $("#activeMemoryTree").onclick = () => openTreeDialog(previewTree ? previewTree.id : "active");
 }
 
 const roomSurface = $(".care-room");
@@ -1267,7 +1269,7 @@ function renderWeeklyPlan() {
   const productWaitingMarkup = planMode === "normal" ? `<section class="product-waiting"><span class="kicker">AI 제품 추천</span><p>사진을 확인하면 청소 방법 바로 아래에 제품 사진과 쿠팡 보기 버튼이 있는 추천 카드 2개가 표시돼요.</p></section>` : "";
   const guideMarkup = guide?.invalidPhoto ? `<section class="plan-photo-retry"><span class="kicker">PHOTO PLACE CHECK</span><h3>${LABELS.area[current.area]} 사진을 다시 등록해주세요</h3><p>${escapeHtml(guide.message || "사진에서 오늘 돌볼 장소 단서를 확인하기 어려워요.")} 오늘 계획인 ${LABELS.area[current.area]}이(가) 보이도록 한 장을 다시 올려주세요.</p><button id="confirmPlannedArea" class="outline" type="button">이 사진은 ${LABELS.area[current.area]}예요 · 계속</button></section>${productWaitingMarkup}` : guide ? `<section class="plan-guide ${planMode === "easy" ? "easy-guide" : ""}"><span class="kicker">${planMode === "easy" ? "EASY CARE GUIDE" : guideSource}</span><h3>${LABELS.area[guideArea]} ${planMode === "easy" ? "가벼운 청소 행동" : "청소 절차"}</h3>${detectedNote}<p>${planMode === "easy" ? "오늘은 부담 없는 한두 가지만 해도 충분해요." : `${guideIntro} 한 번에 끝내려 하지 않아도 괜찮아요.`}</p><ol>${guide.steps.slice(0, planMode === "easy" ? 2 : 6).map((step) => `<li><b>${escapeHtml(step.instruction || step.title)}</b><span>${escapeHtml(step.detail || step.body || "작은 범위만 천천히 진행해요.")}</span></li>`).join("")}</ol></section>${planMode === "normal" ? productCards(guideArea, guide.focus || "unknown") : ""}` : state.planPhoto ? `<p class="plan-guide-loading">사진이 오늘의 ${LABELS.area[current.area]}인지 확인하고 있어요.</p>${productWaitingMarkup}` : productWaitingMarkup;
   const photoMarkup = (data, label) => data ? `<img src="${data}" alt="${label} 미리보기">` : "";
-  $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div>${modeMarkup}<label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${(done || guide?.invalidPhoto) ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : guide?.invalidPhoto ? "사진을 다시 확인해주세요" : "개선 확인하고 텃밭 보기"}</button></div>`;
+  $("#todayPlanCard").innerHTML = `<div><span class="kicker">TODAY · ${current.day}요일</span><h2>${LABELS.area[current.area]} 돌봄</h2><p>${current.task}</p><small>비포·애프터 사진 원본은 저장하지 않아요.</small></div>${modeMarkup}<label class="plan-photo ${state.planPhoto ? "has-image" : ""}"><input id="planPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planPhoto, "비포 사진")}<span>${state.planPhoto ? "비포 사진 바꾸기" : "＋ 비포 사진"}</span></label>${guideMarkup}<div class="plan-after-row"><label class="plan-photo ${state.planAfterPhoto ? "has-image" : ""}"><input id="planAfterPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">${photoMarkup(state.planAfterPhoto, "애프터 사진")}<span>${state.planAfterPhoto ? "애프터 사진 바꾸기" : "＋ 애프터 사진"}</span></label><button id="completePlanTask" class="primary" ${(done || guide?.invalidPhoto) ? "disabled" : ""}>${done ? "오늘의 기록 완료 ✓" : guide?.invalidPhoto ? "사진을 다시 확인해주세요" : "개선 확인하고 기억의 나무 보기"}</button></div>`;
   $("#planPhotoInput").addEventListener("change", async (event) => { try { state.planPhoto = await imageData(event.target.files[0]); state.planGuide = null; state.planDetected = null; renderWeeklyPlan(); await analyzeWeeklyPhotoAndLoadGuide(current); } catch (error) { toast(error.message); } });
   $("#planAfterPhotoInput").addEventListener("change", async (event) => { try { state.planAfterPhoto = await imageData(event.target.files[0]); renderWeeklyPlan(); } catch (error) { toast(error.message); } });
   $$('[data-card-plan-mode]').forEach((button) => button.addEventListener("click", () => setWeeklyPlanMode(plan, button.dataset.cardPlanMode)));
@@ -1339,11 +1341,12 @@ async function completePlanTask(task) {
   state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null; state.planDetected = null;
   renderWeeklyPlan(); renderCash();
   state.gardenCelebration = !!treeResult.completedTree;
+  state.ripeTreePreview = treeResult.completedTree;
   showView("room");
   if (treeResult.completedTree) {
-    setTimeout(() => { state.gardenCelebration = false; renderRoom(); openTreeDialog(treeResult.completedTree.id); }, 2800);
+    setTimeout(() => { state.gardenCelebration = false; state.ripeTreePreview = null; renderRoom(); openTreeDialog(treeResult.completedTree.id); }, 2800);
     toast("기억의 열매가 완성됐어요. 5번의 돌봄 기록을 열어볼까요?");
-  } else toast("오늘의 돌봄 3포인트가 현재 기억나무에 쌓였어요.");
+  } else toast("오늘의 돌봄 3포인트가 현재 기억의 나무에 쌓였어요.");
 }
 
 function renderCash() {

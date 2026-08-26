@@ -179,12 +179,33 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert "const LEGACY_SEED_VALUES" in source
     assert "기존 씨앗을 기억의 조각으로 전환" in source
     assert "function activeTreeStage" in source
+    assert 'if (points >= CARE_TREE_TARGET) return "ripe";' in source
+    assert 'if (points >= 12) return "fruiting";' in source
+    assert 'if (points >= 9) return "leafy";' in source
+    assert 'if (points >= 6) return "branching";' in source
+    assert "ripeTreePreview" in source
     assert 'id="activeMemoryTree"' in markup
     assert 'id="gardenOrchard"' in markup
     assert 'class="garden-stage-list"' not in markup
     assert 'data-crop-plot' not in markup
     assert 'id="plantSeed"' not in markup
     assert 'id="waterCrop"' not in markup
+
+
+def test_memory_tree_uses_cumulative_growth_elements_and_visible_naming() -> None:
+    markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+    styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
+    assert "기억의 나무" in markup
+    assert "MY MEMORY GARDEN" not in markup
+    assert "텃밭" not in markup
+    assert 'class="tree-branch' in markup
+    assert 'class="tree-leaf' in markup
+    assert 'class="tree-fruits"' in markup
+    assert ".tree-branch" in styles
+    assert ".tree-leaf" in styles
+    assert "@keyframes memoryTreeGrow" in styles
+    assert "@keyframes fruitAppear" in styles
+    assert "prefers-reduced-motion:reduce" in styles
 
 
 def test_locked_farm_items_do_not_leave_ghost_images() -> None:
@@ -199,7 +220,7 @@ def test_single_garden_centers_the_active_memory_tree() -> None:
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'class="care-room care-farm simple-garden"' in markup
     assert 'id="treeInfo"' in markup
-    assert "새 나무가 다음 돌봄을 기다리고 있어요" in source
+    assert "새 기억의 나무가 다음 돌봄을 기다리고 있어요" in source
     assert 'class="unlock-list"' not in markup
     assert 'class="farmer-customizer"' not in markup
 
