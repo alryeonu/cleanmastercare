@@ -185,7 +185,7 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert 'if (points >= 6) return "branching";' in source
     assert "ripeTreePreview" in source
     assert 'id="activeMemoryTree"' in markup
-    assert 'id="gardenOrchard"' in markup
+    assert 'id="memoryTreeGrid"' in markup
     assert 'class="garden-stage-list"' not in markup
     assert 'data-crop-plot' not in markup
     assert 'id="plantSeed"' not in markup
@@ -320,18 +320,24 @@ def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
     assert '"maxDuration": 60' in vercel
 
 
-def test_garden_has_a_house_path_active_tree_and_orchard_records() -> None:
+def test_memory_tree_grid_has_moveable_active_and_orchard_records() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
     assert 'class="garden-house"' in markup
-    assert 'class="farm-path"' in markup
+    assert 'class="farm-path"' not in markup
+    assert 'class="farm-fence"' not in markup
+    assert 'id="memoryTreeGrid"' in markup
+    assert 'data-tree-slot="5"' in markup
     assert 'id="activeMemoryTree"' in markup
-    assert 'id="gardenOrchard"' in markup
     assert 'id="treeDialog"' in markup
     assert "openTreeDialog" in script
     assert "selectTreeBenefit" in script
+    assert "moveMemoryTree" in script
+    assert "bindMemoryTreeDragging" in script
+    assert "treePositions" in script
     assert ".active-memory-tree" in styles
+    assert ".memory-tree-grid" in styles
 
 
 def test_memory_tree_keeps_five_records_and_a_non_consuming_product_benefit() -> None:

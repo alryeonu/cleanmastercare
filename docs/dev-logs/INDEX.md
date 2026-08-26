@@ -1,5 +1,6 @@
 # 개발일지 목록
 
+- [2026-08-26 · 기억의 나무 격자 배치와 이동](2026-08-26-069-memory-tree-grid-layout.md)
 - [2026-08-26 · 아이소메트릭 기억의 나무 스타일](2026-08-26-068-isometric-memory-tree-style.md)
 - [2026-08-26 · 기억의 나무 누적 성장 그래픽](2026-08-26-067-memory-tree-cumulative-growth.md)
 - [2026-08-26 · 기억나무·열매 돌봄 보상 리팩터링](2026-08-26-066-care-tree-fruit-rewards.md)

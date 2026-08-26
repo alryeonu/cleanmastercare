@@ -37,6 +37,7 @@ const LABELS = {
 const CARE_STEP_MEMORY = 3;
 const CARE_POINTS_PER_MISSION = 3;
 const CARE_TREE_TARGET = 15;
+const MEMORY_TREE_SLOT_COUNT = 12;
 const MEMORY_PLANT_COST = 1;
 const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false, ripeTreePreview: null };
 
@@ -141,6 +142,66 @@ function addMissionToCareForest(record) {
   const result = appendCareTreeRecord(careForest(), record);
   if (result.added) write(STORE.careForest, result.forest);
   return result;
+}
+function validMemoryTreeSlot(value) { return Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) < MEMORY_TREE_SLOT_COUNT; }
+function normalizeMemoryTreePositions(forest) {
+  const saved = forest.treePositions || {};
+  const claimed = new Set();
+  const reserve = (preferred) => {
+    const slot = Number(preferred);
+    if (validMemoryTreeSlot(slot) && !claimed.has(slot)) { claimed.add(slot); return slot; }
+    const fallback = Array.from({ length: MEMORY_TREE_SLOT_COUNT }, (_, index) => index).find((index) => !claimed.has(index));
+    claimed.add(fallback ?? 0);
+    return fallback ?? 0;
+  };
+  const positions = { active: reserve(saved.active ?? 5), orchard: {} };
+  forest.orchardTrees.slice(0, MEMORY_TREE_SLOT_COUNT - 1).forEach((tree) => { positions.orchard[tree.id] = reserve(saved.orchard?.[tree.id]); });
+  return positions;
+}
+function moveMemoryTree(treeId, targetSlot) {
+  if (!validMemoryTreeSlot(targetSlot)) return;
+  const forest = careForest();
+  const positions = normalizeMemoryTreePositions(forest);
+  const isActive = treeId === "active";
+  const currentSlot = isActive ? positions.active : positions.orchard[treeId];
+  if (!validMemoryTreeSlot(currentSlot) || currentSlot === Number(targetSlot)) return;
+  const occupiedId = positions.active === Number(targetSlot) ? "active" : Object.entries(positions.orchard).find(([, slot]) => slot === Number(targetSlot))?.[0];
+  if (isActive) positions.active = Number(targetSlot); else positions.orchard[treeId] = Number(targetSlot);
+  if (occupiedId === "active") positions.active = currentSlot;
+  else if (occupiedId) positions.orchard[occupiedId] = currentSlot;
+  forest.treePositions = positions;
+  write(STORE.careForest, forest);
+  renderRoom();
+  toast(occupiedId ? "두 기억의 나무 자리를 바꿨어요." : "기억의 나무 자리를 옮겼어요.");
+}
+function bindMemoryTreeDragging() {
+  const grid = $("#memoryTreeGrid");
+  if (!grid) return;
+  $$(".draggable-tree", grid).forEach((tree) => tree.addEventListener("pointerdown", (startEvent) => {
+    if (startEvent.button !== 0) return;
+    const treeId = tree.dataset.treeId;
+    const start = { x: startEvent.clientX, y: startEvent.clientY };
+    let dragging = false;
+    const move = (event) => {
+      if (!dragging && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 8) return;
+      if (!dragging) { dragging = true; tree.classList.add("tree-is-dragging"); }
+      tree.style.left = `${event.clientX - tree.offsetWidth / 2}px`;
+      tree.style.top = `${event.clientY - tree.offsetHeight / 2}px`;
+    };
+    const end = (event) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      if (!dragging) return;
+      tree.dataset.suppressClick = "true";
+      tree.classList.remove("tree-is-dragging");
+      tree.style.removeProperty("left"); tree.style.removeProperty("top");
+      const slot = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-tree-slot]");
+      if (slot) moveMemoryTree(treeId, Number(slot.dataset.treeSlot));
+      window.setTimeout(() => { delete tree.dataset.suppressClick; }, 0);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end, { once: true });
+  }));
 }
 async function passwordHash(password) {
   const bytes = new TextEncoder().encode(password);
@@ -1142,13 +1203,22 @@ function selectTreeBenefit(treeId, benefitId) {
 function renderRoom() {
   if (!$("#activeMemoryTree")) return;
   const forest = careForest();
+  const grid = $("#memoryTreeGrid");
+  const activeTree = $("#activeMemoryTree");
+  const treePositions = normalizeMemoryTreePositions(forest);
+  activeTree.remove();
+  grid.innerHTML = Array.from({ length: MEMORY_TREE_SLOT_COUNT }, (_, index) => `<div class="tree-grid-slot" data-tree-slot="${index}"></div>`).join("");
+  $(`[data-tree-slot="${treePositions.active}"]`, grid)?.append(activeTree);
   const previewTree = state.ripeTreePreview;
   const points = previewTree ? CARE_TREE_TARGET : forest.activeTreePoints;
   const stage = activeTreeStage(points);
   $(".simple-garden").dataset.gardenStage = stage;
-  $("#activeMemoryTree").dataset.stage = stage;
-  $("#activeMemoryTree").setAttribute("aria-label", `${previewTree ? "완성된" : "현재 성장 중인"} 기억의 나무, 돌봄 ${points}포인트. 기록 보기`);
-  $("#gardenOrchard").innerHTML = forest.orchardTrees.slice(0, 8).map((tree) => `<button type="button" class="orchard-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매 기록 보기"><span class="tree-crown"></span><i>●</i></button>`).join("");
+  activeTree.dataset.stage = stage;
+  activeTree.setAttribute("aria-label", `${previewTree ? "완성된" : "현재 성장 중인"} 기억의 나무, 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
+  forest.orchardTrees.slice(0, MEMORY_TREE_SLOT_COUNT - 1).forEach((tree) => {
+    const slot = $(`[data-tree-slot="${treePositions.orchard[tree.id]}"]`, grid);
+    if (slot) slot.innerHTML = `<button type="button" class="orchard-tree draggable-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-tree-id="${escapeHtml(tree.id)}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요."><span class="tree-crown"></span><i>●</i></button>`;
+  });
   const decorations = [];
   if (forest.orchardTrees.length) decorations.push('<span class="garden-flower-patch flower-left">🌼 🌷</span>');
   if (forest.orchardTrees.length >= 2) decorations.push('<span class="garden-pond">🦆</span>');
@@ -1158,8 +1228,9 @@ function renderRoom() {
   $("#treeInfo").textContent = previewTree ? "기억의 나무에 잘 익은 열매가 맺혔어요" : points ? `이번 나무에 돌봄 ${points}포인트가 쌓였어요` : "새 기억의 나무가 다음 돌봄을 기다리고 있어요";
   $("#treeProgressDots").innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${points / CARE_POINTS_PER_MISSION > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
   $("#treeNext").textContent = previewTree ? "이번 열매의 기록을 열어보세요" : `다음 열매까지 청소 미션 ${5 - (points / CARE_POINTS_PER_MISSION)}번`;
-  $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => openTreeDialog(button.dataset.openTree)));
-  $("#activeMemoryTree").onclick = () => openTreeDialog(previewTree ? previewTree.id : "active");
+  $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => { if (!button.dataset.suppressClick) openTreeDialog(button.dataset.openTree); }));
+  activeTree.onclick = () => { if (!activeTree.dataset.suppressClick) openTreeDialog(previewTree ? previewTree.id : "active"); };
+  bindMemoryTreeDragging();
 }
 
 const roomSurface = $(".care-room");
