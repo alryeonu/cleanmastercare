@@ -36,7 +36,8 @@ const LABELS = {
 };
 const CARE_STEP_MEMORY = 3;
 const CARE_POINTS_PER_MISSION = 3;
-const CARE_TREE_TARGET = 15;
+const CARE_FRUITS_PER_WEEK = 5;
+const CARE_WEEKLY_FRUIT_BONUS = 5;
 const MEMORY_TREE_SLOT_COUNT = 12;
 const MEMORY_PLANT_COST = 1;
 const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false, ripeTreePreview: null };
@@ -91,7 +92,13 @@ function profileStoreKey(key) {
 }
 function read(key, fallback) { return rawRead(profileStoreKey(key), fallback); }
 function write(key, value) { rawWrite(profileStoreKey(key), value); }
-function emptyCareForest() { return { totalCarePoints: 0, activeTreePoints: 0, activeTreeRecords: [], orchardTrees: [] }; }
+function emptyCareForest() { return { totalCarePoints: 0, activeTreePoints: 0, activeTreeFruitCount: 0, activeTreeWeekKey: null, activeTreeBonusAwarded: false, activeTreeRecords: [], orchardTrees: [] }; }
+function currentCareWeekKey(date = new Date()) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  value.setDate(value.getDate() - ((value.getDay() + 6) % 7));
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
 function treeRecordFromMission(record = {}) {
   const area = record.area || record.plannedArea || "other";
   return {
@@ -109,28 +116,62 @@ function hasCareTreeRecord(forest, id) {
   return forest.activeTreeRecords.some((record) => record.id === id)
     || forest.orchardTrees.some((tree) => (tree.records || []).some((record) => record.id === id));
 }
-function appendCareTreeRecord(forest, sourceRecord) {
-  const record = treeRecordFromMission(sourceRecord);
-  if (hasCareTreeRecord(forest, record.id)) return { forest, completedTree: null, added: false };
-  const next = {
+function archiveWeeklyCareTree(forest, nextWeekKey) {
+  const records = Array.isArray(forest.activeTreeRecords) ? forest.activeTreeRecords : [];
+  const fruitCount = Math.min(CARE_FRUITS_PER_WEEK, Number(forest.activeTreeFruitCount) || records.length);
+  const next = { ...forest, activeTreeWeekKey: nextWeekKey, activeTreePoints: 0, activeTreeFruitCount: 0, activeTreeBonusAwarded: false, activeTreeRecords: [] };
+  if (!records.length) return next;
+  const tree = {
+    id: `tree-${forest.activeTreeWeekKey || Date.now()}`,
+    completedAt: new Date().toISOString(),
+    weekKey: forest.activeTreeWeekKey || currentCareWeekKey(),
+    pointsEarned: Math.max(0, Number(forest.activeTreePoints) || 0),
+    fruitCount,
+    records,
+    selectedBenefit: null,
+    fruitState: fruitCount >= CARE_FRUITS_PER_WEEK ? "ripe" : "growing",
+  };
+  return { ...next, orchardTrees: [tree, ...(Array.isArray(forest.orchardTrees) ? forest.orchardTrees : [])] };
+}
+function ensureWeeklyCareTree(forest) {
+  const weekKey = currentCareWeekKey();
+  const normalized = {
+    ...emptyCareForest(),
     ...forest,
-    totalCarePoints: Math.max(0, Number(forest.totalCarePoints) || 0) + CARE_POINTS_PER_MISSION,
-    activeTreePoints: Math.min(CARE_TREE_TARGET, Math.max(0, Number(forest.activeTreePoints) || 0) + CARE_POINTS_PER_MISSION),
-    activeTreeRecords: [...(forest.activeTreeRecords || []), record],
+    activeTreePoints: Math.max(0, Number(forest.activeTreePoints) || 0),
+    activeTreeRecords: Array.isArray(forest.activeTreeRecords) ? forest.activeTreeRecords : [],
     orchardTrees: Array.isArray(forest.orchardTrees) ? forest.orchardTrees : [],
   };
-  let completedTree = null;
-  if (next.activeTreePoints >= CARE_TREE_TARGET) {
-    completedTree = { id: `tree-${Date.now()}-${record.id}`, completedAt: new Date().toISOString(), pointsEarned: CARE_TREE_TARGET, records: next.activeTreeRecords.slice(-5), selectedBenefit: null, fruitState: "ripe" };
-    next.orchardTrees = [completedTree, ...next.orchardTrees];
-    next.activeTreePoints = 0;
-    next.activeTreeRecords = [];
+  if (!normalized.activeTreeWeekKey) return { ...normalized, activeTreeWeekKey: weekKey, activeTreeFruitCount: Math.min(CARE_FRUITS_PER_WEEK, normalized.activeTreeRecords.length) };
+  if (normalized.activeTreeWeekKey !== weekKey) return archiveWeeklyCareTree(normalized, weekKey);
+  return { ...normalized, activeTreeFruitCount: Math.min(CARE_FRUITS_PER_WEEK, Math.max(Number(normalized.activeTreeFruitCount) || 0, normalized.activeTreeRecords.length)) };
+}
+function appendCareTreeRecord(forest, sourceRecord) {
+  const currentForest = ensureWeeklyCareTree(forest);
+  const record = treeRecordFromMission(sourceRecord);
+  if (hasCareTreeRecord(currentForest, record.id)) return { forest: currentForest, fruitCompleted: false, added: false };
+  const next = {
+    ...currentForest,
+    totalCarePoints: Math.max(0, Number(currentForest.totalCarePoints) || 0) + CARE_POINTS_PER_MISSION,
+    activeTreePoints: Math.max(0, Number(currentForest.activeTreePoints) || 0) + CARE_POINTS_PER_MISSION,
+    activeTreeRecords: [...currentForest.activeTreeRecords, record],
+    orchardTrees: currentForest.orchardTrees,
+  };
+  next.activeTreeFruitCount = Math.min(CARE_FRUITS_PER_WEEK, next.activeTreeRecords.length);
+  const fruitCompleted = next.activeTreeFruitCount >= CARE_FRUITS_PER_WEEK && !currentForest.activeTreeBonusAwarded;
+  if (fruitCompleted) {
+    next.totalCarePoints += CARE_WEEKLY_FRUIT_BONUS;
+    next.activeTreeBonusAwarded = true;
   }
-  return { forest: next, completedTree, added: true };
+  return { forest: next, fruitCompleted, added: true };
 }
 function careForest() {
   const saved = read(STORE.careForest, null);
-  if (saved && Array.isArray(saved.activeTreeRecords) && Array.isArray(saved.orchardTrees)) return { ...emptyCareForest(), ...saved, activeTreePoints: Math.max(0, Math.min(CARE_TREE_TARGET, Number(saved.activeTreePoints) || 0)) };
+  if (saved && Array.isArray(saved.activeTreeRecords) && Array.isArray(saved.orchardTrees)) {
+    const forest = ensureWeeklyCareTree(saved);
+    write(STORE.careForest, forest);
+    return forest;
+  }
   const completed = read(STORE.history, []).filter((record) => record.completed && (record.plannedCompleted || record.beforeAfter)).sort((a, b) => new Date(a.date) - new Date(b.date));
   let forest = emptyCareForest();
   completed.forEach((record) => { forest = appendCareTreeRecord(forest, record).forest; });
@@ -1157,13 +1198,11 @@ function renderComparisonChecklist(checks, evidence, pairHash) {
   return done.length;
 }
 
-function activeTreeStage(points) {
-  if (points >= CARE_TREE_TARGET) return "ripe";
-  if (points >= 12) return "fruiting";
-  if (points >= 9) return "leafy";
-  if (points >= 6) return "branching";
-  if (points >= 3) return "sprout";
-  return "seed";
+function activeTreeStage(fruitCount) {
+  if (fruitCount >= CARE_FRUITS_PER_WEEK) return "ripe";
+  if (fruitCount >= 4) return "fruiting";
+  if (fruitCount >= 2) return "leafy";
+  return "branching";
 }
 function treeRecordMarkup(record) {
   const photo = record.afterPhoto && (record.mode.includes("NORMAL") || record.mode === "일반 모드") ? `<img src="${record.afterPhoto}" alt="${escapeHtml(record.space)} 청소 후 사진">` : "";
@@ -1172,13 +1211,13 @@ function treeRecordMarkup(record) {
 function openTreeDialog(treeId) {
   const forest = careForest();
   const active = treeId === "active";
-  const tree = active ? { id: "active", records: forest.activeTreeRecords, pointsEarned: forest.activeTreePoints, fruitState: "growing" } : forest.orchardTrees.find((item) => item.id === treeId);
+  const tree = active ? { id: "active", records: forest.activeTreeRecords, pointsEarned: forest.activeTreePoints, fruitCount: forest.activeTreeFruitCount, fruitState: "growing" } : forest.orchardTrees.find((item) => item.id === treeId);
   if (!tree) return;
   const dialog = $("#treeDialog");
   const records = tree.records || [];
   $("#treeDialogTitle").textContent = active ? "자라고 있는 기억의 나무" : "잘 익은 기억의 열매";
   $("#treeDialogLead").textContent = active
-    ? `이번 나무에 돌봄 ${tree.pointsEarned}포인트가 쌓였어요. 지금까지의 작은 돌봄을 돌아볼 수 있어요.`
+    ? `이번 주 나무에 열매 ${tree.fruitCount || 0}개와 돌봄 ${tree.pointsEarned}포인트가 쌓였어요. 지금까지의 작은 돌봄을 돌아볼 수 있어요.`
     : `이 열매에는 청소 미션 ${records.length}번의 돌봄 기록이 담겨 있어요.`;
   $("#treeDialogRecords").innerHTML = records.length ? records.map(treeRecordMarkup).join("") : '<p class="empty">첫 청소 미션을 마치면 이 나무에 기록이 쌓여요.</p>';
   const benefit = tree.selectedBenefit;
@@ -1209,12 +1248,13 @@ function renderRoom() {
   activeTree.remove();
   grid.innerHTML = Array.from({ length: MEMORY_TREE_SLOT_COUNT }, (_, index) => `<div class="tree-grid-slot" data-tree-slot="${index}"></div>`).join("");
   $(`[data-tree-slot="${treePositions.active}"]`, grid)?.append(activeTree);
-  const previewTree = state.ripeTreePreview;
-  const points = previewTree ? CARE_TREE_TARGET : forest.activeTreePoints;
-  const stage = activeTreeStage(points);
+  const points = forest.activeTreePoints;
+  const fruitCount = Math.min(CARE_FRUITS_PER_WEEK, forest.activeTreeFruitCount || 0);
+  const stage = activeTreeStage(fruitCount);
   $(".simple-garden").dataset.gardenStage = stage;
   activeTree.dataset.stage = stage;
-  activeTree.setAttribute("aria-label", `${previewTree ? "완성된" : "현재 성장 중인"} 기억의 나무, 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
+  activeTree.dataset.fruitCount = String(fruitCount);
+  activeTree.setAttribute("aria-label", `이번 주 기억의 나무, 열매 ${fruitCount}개와 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
   forest.orchardTrees.slice(0, MEMORY_TREE_SLOT_COUNT - 1).forEach((tree) => {
     const slot = $(`[data-tree-slot="${treePositions.orchard[tree.id]}"]`, grid);
     if (slot) slot.innerHTML = `<button type="button" class="orchard-tree draggable-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-tree-id="${escapeHtml(tree.id)}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요."><span class="tree-crown"></span><i>●</i></button>`;
@@ -1225,11 +1265,11 @@ function renderRoom() {
   if (forest.orchardTrees.length >= 3) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
   $("#gardenDecorations").innerHTML = decorations.join("");
   $("#gardenSparkles")?.classList.toggle("show", state.gardenCelebration);
-  $("#treeInfo").textContent = previewTree ? "기억의 나무에 잘 익은 열매가 맺혔어요" : points ? `이번 나무에 돌봄 ${points}포인트가 쌓였어요` : "새 기억의 나무가 다음 돌봄을 기다리고 있어요";
-  $("#treeProgressDots").innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${points / CARE_POINTS_PER_MISSION > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
-  $("#treeNext").textContent = previewTree ? "이번 열매의 기록을 열어보세요" : `다음 열매까지 청소 미션 ${5 - (points / CARE_POINTS_PER_MISSION)}번`;
+  $("#treeInfo").textContent = fruitCount ? `이번 주 기억의 나무에 열매 ${fruitCount}개가 맺혔어요` : "이번 주 기억의 나무가 첫 돌봄을 기다리고 있어요";
+  $("#treeProgressDots").innerHTML = Array.from({ length: CARE_FRUITS_PER_WEEK }, (_, index) => `<i class="${fruitCount > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
+  $("#treeNext").textContent = fruitCount >= CARE_FRUITS_PER_WEEK ? "열매 5개 완성 · 보너스 돌봄 포인트 +5점" : `열매 5개까지 오늘의 청소 ${CARE_FRUITS_PER_WEEK - fruitCount}번`;
   $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => { if (!button.dataset.suppressClick) openTreeDialog(button.dataset.openTree); }));
-  activeTree.onclick = () => { if (!activeTree.dataset.suppressClick) openTreeDialog(previewTree ? previewTree.id : "active"); };
+  activeTree.onclick = () => { if (!activeTree.dataset.suppressClick) openTreeDialog("active"); };
   bindMemoryTreeDragging();
 }
 
@@ -1411,13 +1451,13 @@ async function completePlanTask(task) {
   reward(`weekly-plan-${task.date}`, 3, `${LABELS.area[task.area]} 주간 돌봄 기록`);
   state.planPhoto = null; state.planAfterPhoto = null; state.planGuide = null; state.planDetected = null;
   renderWeeklyPlan(); renderCash();
-  state.gardenCelebration = !!treeResult.completedTree;
-  state.ripeTreePreview = treeResult.completedTree;
+  state.gardenCelebration = !!treeResult.fruitCompleted;
+  state.ripeTreePreview = null;
   showView("room");
-  if (treeResult.completedTree) {
-    setTimeout(() => { state.gardenCelebration = false; state.ripeTreePreview = null; renderRoom(); openTreeDialog(treeResult.completedTree.id); }, 2800);
-    toast("기억의 열매가 완성됐어요. 5번의 돌봄 기록을 열어볼까요?");
-  } else toast("오늘의 돌봄 3포인트가 현재 기억의 나무에 쌓였어요.");
+  if (treeResult.fruitCompleted) {
+    setTimeout(() => { state.gardenCelebration = false; renderRoom(); }, 2800);
+    toast("이번 주 다섯 번째 열매가 맺혔어요. 보너스 돌봄 포인트 5점도 더했어요.");
+  } else toast("오늘의 돌봄 3포인트와 기억의 열매 하나가 이번 주 나무에 쌓였어요.");
 }
 
 function renderCash() {

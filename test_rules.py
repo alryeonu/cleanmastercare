@@ -169,8 +169,13 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert "돌봄 포인트" in markup
     assert "const CARE_POINTS_PER_MISSION = 3;" in source
-    assert "const CARE_TREE_TARGET = 15;" in source
+    assert "const CARE_FRUITS_PER_WEEK = 5;" in source
+    assert "const CARE_WEEKLY_FRUIT_BONUS = 5;" in source
     assert "activeTreePoints" in source
+    assert "activeTreeFruitCount" in source
+    assert "activeTreeWeekKey" in source
+    assert "currentCareWeekKey" in source
+    assert "archiveWeeklyCareTree" in source
     assert "orchardTrees" in source
     assert 'id="seedShop"' not in markup
     assert 'data-spend-tab="seed"' not in markup
@@ -179,11 +184,9 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert "const LEGACY_SEED_VALUES" in source
     assert "기존 씨앗을 기억의 조각으로 전환" in source
     assert "function activeTreeStage" in source
-    assert 'if (points >= CARE_TREE_TARGET) return "ripe";' in source
-    assert 'if (points >= 12) return "fruiting";' in source
-    assert 'if (points >= 9) return "leafy";' in source
-    assert 'if (points >= 6) return "branching";' in source
-    assert "ripeTreePreview" in source
+    assert 'if (fruitCount >= CARE_FRUITS_PER_WEEK) return "ripe";' in source
+    assert "fruitCompleted" in source
+    assert "next.totalCarePoints += CARE_WEEKLY_FRUIT_BONUS;" in source
     assert 'id="activeMemoryTree"' in markup
     assert 'id="memoryTreeGrid"' in markup
     assert 'class="garden-stage-list"' not in markup
@@ -221,7 +224,7 @@ def test_single_garden_centers_the_active_memory_tree() -> None:
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'class="care-room care-farm simple-garden"' in markup
     assert 'id="treeInfo"' in markup
-    assert "새 기억의 나무가 다음 돌봄을 기다리고 있어요" in source
+    assert "이번 주 기억의 나무가 첫 돌봄을 기다리고 있어요" in source
     assert 'class="unlock-list"' not in markup
     assert 'class="farmer-customizer"' not in markup
 
@@ -247,7 +250,7 @@ def test_weekly_tracker_previews_photos_and_uses_the_published_guide() -> None:
     assert 'guide.steps.slice(0, planMode === "easy" ? 2 : 6)' in script
     assert 'SUPABASE CLEANING GUIDE' in script
     assert 'id="gardenSparkles"' in markup
-    assert "state.gardenCelebration = !!treeResult.completedTree" in script
+    assert "state.gardenCelebration = !!treeResult.fruitCompleted" in script
     assert 'showView("room")' in script
     assert "PRODUCT_CATALOG" in (ROOT / "static" / "product-links.js").read_text(encoding="utf-8")
 
@@ -324,7 +327,7 @@ def test_memory_tree_grid_has_moveable_active_and_orchard_records() -> None:
     markup = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     styles = (ROOT / "static" / "styles.css").read_text(encoding="utf-8")
-    assert 'class="garden-house"' in markup
+    assert 'class="garden-house"' not in markup
     assert 'class="farm-path"' not in markup
     assert 'class="farm-fence"' not in markup
     assert 'id="memoryTreeGrid"' in markup
@@ -344,8 +347,9 @@ def test_memory_tree_keeps_five_records_and_a_non_consuming_product_benefit() ->
     script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert "totalCarePoints" in script
     assert "activeTreeRecords" in script
-    assert "pointsEarned: CARE_TREE_TARGET" in script
-    assert "fruitState: \"ripe\"" in script
+    assert "pointsEarned: Math.max(0, Number(forest.activeTreePoints) || 0)" in script
+    assert "fruitCount," in script
+    assert 'fruitState: fruitCount >= CARE_FRUITS_PER_WEEK ? "ripe" : "growing"' in script
     assert "benefitId" in script
     assert "benefitType: \"product_link\"" in script
     assert "selectedAt: new Date().toISOString()" in script
