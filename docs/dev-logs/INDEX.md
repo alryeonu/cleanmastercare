@@ -1,5 +1,6 @@
 # 개발일지 목록
 
+- [2026-08-26 · 기억의 나무 주차 표기와 기본 잎 보강](2026-08-26-074-memory-tree-week-label-and-foliage.md)
 - [2026-08-26 · Supabase NORMAL 맞춤 청소 안내](2026-08-26-073-supabase-normal-guide-enrichment.md)
 - [2026-08-26 · 주간 기억의 나무 열매 보상](2026-08-26-072-weekly-fruit-tree.md)
 - [2026-08-26 · 기억의 나무 격자 경계 보정](2026-08-26-071-tree-slot-bounds.md)

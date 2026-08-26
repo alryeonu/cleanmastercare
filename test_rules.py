@@ -244,6 +244,8 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert "const LEGACY_SEED_VALUES" in source
     assert "기존 씨앗을 기억의 조각으로 전환" in source
     assert "function activeTreeStage" in source
+    assert "function careWeekTitle" in source
+    assert "월의 ${ordinal} 주 나무" in source
     assert 'if (fruitCount >= CARE_FRUITS_PER_WEEK) return "ripe";' in source
     assert "fruitCompleted" in source
     assert "next.totalCarePoints += CARE_WEEKLY_FRUIT_BONUS;" in source
@@ -284,7 +286,7 @@ def test_single_garden_centers_the_active_memory_tree() -> None:
     source = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
     assert 'class="care-room care-farm simple-garden"' in markup
     assert 'id="treeInfo"' in markup
-    assert "이번 주 기억의 나무가 첫 돌봄을 기다리고 있어요" in source
+    assert "${weekTitle}가 첫 돌봄을 기다리고 있어요" in source
     assert 'class="unlock-list"' not in markup
     assert 'class="farmer-customizer"' not in markup
 

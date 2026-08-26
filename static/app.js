@@ -101,6 +101,15 @@ function currentCareWeekKey(date = new Date()) {
   value.setDate(value.getDate() - ((value.getDay() + 6) % 7));
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
 }
+function careWeekTitle(weekKey = currentCareWeekKey()) {
+  const [year, month, day] = String(weekKey).split("-").map(Number);
+  const weekStart = new Date(year, (month || 1) - 1, day || 1);
+  const firstDay = new Date(weekStart.getFullYear(), weekStart.getMonth(), 1);
+  const firstMonday = 1 + ((8 - firstDay.getDay()) % 7);
+  const weekNumber = weekStart.getDate() < firstMonday ? 1 : 1 + Math.floor((weekStart.getDate() - firstMonday) / 7);
+  const ordinal = ["첫째", "둘째", "셋째", "넷째", "다섯째", "여섯째"][Math.min(weekNumber, 6) - 1] || `${weekNumber}째`;
+  return `${weekStart.getMonth() + 1}월의 ${ordinal} 주 나무`;
+}
 function treeRecordFromMission(record = {}) {
   const area = record.area || record.plannedArea || "other";
   return {
@@ -1253,10 +1262,11 @@ function renderRoom() {
   const points = forest.activeTreePoints;
   const fruitCount = Math.min(CARE_FRUITS_PER_WEEK, forest.activeTreeFruitCount || 0);
   const stage = activeTreeStage(fruitCount);
+  const weekTitle = careWeekTitle(forest.activeTreeWeekKey);
   $(".simple-garden").dataset.gardenStage = stage;
   activeTree.dataset.stage = stage;
   activeTree.dataset.fruitCount = String(fruitCount);
-  activeTree.setAttribute("aria-label", `이번 주 기억의 나무, 열매 ${fruitCount}개와 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
+  activeTree.setAttribute("aria-label", `${weekTitle}, 열매 ${fruitCount}개와 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
   forest.orchardTrees.slice(0, MEMORY_TREE_SLOT_COUNT - 1).forEach((tree) => {
     const slot = $(`[data-tree-slot="${treePositions.orchard[tree.id]}"]`, grid);
     if (slot) slot.innerHTML = `<button type="button" class="orchard-tree draggable-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-tree-id="${escapeHtml(tree.id)}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요."><span class="tree-crown"></span><i>●</i></button>`;
@@ -1267,7 +1277,7 @@ function renderRoom() {
   if (forest.orchardTrees.length >= 3) decorations.push('<span class="garden-flower-patch flower-right">🌻 🌼 🌷</span>');
   $("#gardenDecorations").innerHTML = decorations.join("");
   $("#gardenSparkles")?.classList.toggle("show", state.gardenCelebration);
-  $("#treeInfo").textContent = fruitCount ? `이번 주 기억의 나무에 열매 ${fruitCount}개가 맺혔어요` : "이번 주 기억의 나무가 첫 돌봄을 기다리고 있어요";
+  $("#treeInfo").textContent = fruitCount ? `${weekTitle}에 열매 ${fruitCount}개가 맺혔어요` : `${weekTitle}가 첫 돌봄을 기다리고 있어요`;
   $("#treeProgressDots").innerHTML = Array.from({ length: CARE_FRUITS_PER_WEEK }, (_, index) => `<i class="${fruitCount > index ? "filled" : ""}" aria-hidden="true"></i>`).join("");
   $("#treeNext").textContent = fruitCount >= CARE_FRUITS_PER_WEEK ? "열매 5개 완성 · 보너스 돌봄 포인트 +5점" : `열매 5개까지 오늘의 청소 ${CARE_FRUITS_PER_WEEK - fruitCount}번`;
   $$("[data-open-tree]").forEach((button) => button.addEventListener("click", () => { if (!button.dataset.suppressClick) openTreeDialog(button.dataset.openTree); }));

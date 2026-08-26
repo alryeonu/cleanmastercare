@@ -268,6 +268,7 @@ html,body,button,input,select,textarea{font-family:var(--body-font)}
 @media(prefers-reduced-motion:reduce){.active-memory-tree,.active-memory-tree[data-stage="leafy"],.active-memory-tree[data-stage="fruiting"],.active-memory-tree[data-stage="ripe"],.active-memory-tree[data-stage="ripe"] .tree-fruits{animation:none}}
 
 /* 기억의 나무의 열매는 성장 단계에 맞게 12점에는 두 개, 완성 시 세 개가 누적된다. */
+.active-memory-tree[data-stage="branching"] .tree-leaf{width:49px;height:33px;opacity:1;transform:scale(1)}
 .active-memory-tree .tree-fruits{display:flex;gap:17px;opacity:1;text-shadow:none}.active-memory-tree .tree-fruits i{display:block;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 34% 28%,#ffd699 0 15%,#f18a5b 18% 70%,#ae5142 72%);opacity:0;transform:scale(.3);box-shadow:0 2px 0 #ae5142;transition:opacity .3s ease,transform .45s cubic-bezier(.2,1.45,.35,1)}.active-memory-tree[data-stage="fruiting"] .tree-fruits i:nth-child(-n+2),.active-memory-tree[data-stage="ripe"] .tree-fruits i{opacity:1;transform:scale(1)}.active-memory-tree[data-stage="ripe"] .tree-fruits i{animation:fruitAppear .56s ease both}.active-memory-tree[data-stage="ripe"] .tree-fruits i:nth-child(2){animation-delay:.08s}.active-memory-tree[data-stage="ripe"] .tree-fruits i:nth-child(3){animation-delay:.16s}
 
 /* 따뜻한 아이소메트릭 정원: 각 요소는 교체하지 않고 단계마다 위로 더해진다. */
