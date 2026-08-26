@@ -40,7 +40,7 @@ const CARE_STEP_MEMORY = 3;
 const CARE_POINTS_PER_MISSION = 3;
 const CARE_FRUITS_PER_WEEK = 5;
 const CARE_WEEKLY_FRUIT_BONUS = 5;
-const MEMORY_TREE_SLOT_COUNT = 12;
+const MEMORY_TREE_SLOT_COUNT = 6;
 const MEMORY_PLANT_COST = 1;
 const state = { step: 1, scenario: 0, guide: null, images: {}, planAreas: [], planMode: "normal", planPhoto: null, planAfterPhoto: null, planGuide: null, planDetected: null, communityPhoto: null, gardenCelebration: false, ripeTreePreview: null };
 

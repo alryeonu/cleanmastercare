@@ -230,6 +230,7 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert "돌봄 포인트" in markup
     assert "const CARE_POINTS_PER_MISSION = 3;" in source
     assert "const CARE_FRUITS_PER_WEEK = 5;" in source
+    assert "const MEMORY_TREE_SLOT_COUNT = 6;" in source
     assert "const CARE_WEEKLY_FRUIT_BONUS = 5;" in source
     assert "activeTreePoints" in source
     assert "activeTreeFruitCount" in source
@@ -273,6 +274,7 @@ def test_memory_tree_uses_cumulative_growth_elements_and_visible_naming() -> Non
     assert ".tree-leaf" in styles
     assert ".tree-week-sign" in styles
     assert "data-fruit-count=\"1\"" in styles
+    assert "grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))" in styles
     assert "@keyframes memoryTreeGrow" in styles
     assert "@keyframes fruitAppear" in styles
     assert "prefers-reduced-motion:reduce" in styles
