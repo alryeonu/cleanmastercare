@@ -200,6 +200,7 @@ def test_memory_tree_uses_cumulative_growth_elements_and_visible_naming() -> Non
     assert "텃밭" not in markup
     assert 'class="tree-branch' in markup
     assert 'class="tree-leaf' in markup
+    assert 'class="tree-ground"' in markup
     assert 'class="tree-fruits"' in markup
     assert ".tree-branch" in styles
     assert ".tree-leaf" in styles
