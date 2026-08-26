@@ -120,6 +120,20 @@
       <div id="treeBenefitPanel"></div>
     </dialog>
 
+    <dialog id="analysisCorrectionDialog" class="analysis-correction-dialog" aria-labelledby="analysisCorrectionTitle">
+      <form id="analysisCorrectionForm" class="analysis-correction-form" novalidate>
+        <div class="analysis-correction-head"><div><span class="kicker">AI PHOTO CHECK</span><h2 id="analysisCorrectionTitle">사진 인식 수정</h2></div><button id="closeAnalysisCorrection" class="back reset" type="button" aria-label="사진 인식 수정 닫기">×</button></div>
+        <p>사진을 다시 보고 청소 공간과 관찰된 후보를 직접 바꿀 수 있어요. 수정하면 이 선택으로 청소 방법을 다시 불러와요.</p>
+        <div class="analysis-correction-fields">
+          <label>청소 공간<select id="correctionArea"></select></label>
+          <label>오염 종류<select id="correctionFocus"></select></label>
+          <label>오염 강도<select id="correctionSeverity"></select></label>
+          <label>표면 후보<select id="correctionSurface"></select></label>
+        </div>
+        <button class="primary" type="submit">수정한 내용으로 청소 방법 보기</button>
+      </form>
+    </dialog>
+
     <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
       <form id="loginForm" class="login-form" novalidate>
         <span class="login-mark" aria-hidden="true">💚</span>
