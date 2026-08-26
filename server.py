@@ -56,11 +56,13 @@ ANALYSIS_SCHEMAS: dict[str, dict[str, Any]] = {
             "area_hint": {"type": "string", "enum": ["desk", "sink", "sofa", "bed", "shoe_rack", "bathroom", "kitchen", "other"]},
             "visible_categories": {"type": "array", "items": {"type": "string", "enum": ["organize", "clean", "laundry"]}},
             "cleaning_focus": {"type": "string", "enum": ["water_scale", "soap_scum", "grease", "dust", "clutter", "laundry", "unknown"]},
+            "severity": {"type": "string", "enum": ["light", "moderate", "heavy", "unknown"]},
+            "surface_hint": {"type": "string", "enum": ["hard_surface", "ceramic_tile", "glass", "metal", "fabric", "wood", "unknown"]},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "observations": {"type": "array", "items": {"type": "string"}},
             "needs_user_confirmation": {"type": "boolean"},
         },
-        "required": ["area_hint", "visible_categories", "cleaning_focus", "confidence", "observations", "needs_user_confirmation"],
+        "required": ["area_hint", "visible_categories", "cleaning_focus", "severity", "surface_hint", "confidence", "observations", "needs_user_confirmation"],
     },
     "bathroom_check": {
         "type": "object",
@@ -109,7 +111,7 @@ ANALYSIS_SCHEMAS: dict[str, dict[str, Any]] = {
 
 
 PROMPTS = {
-    "cleaning_area": """당신은 집안 공간 사진에서 관찰 가능한 정리·청소·세탁 후보를 설명하는 시각 관찰 도우미입니다. area_hint는 사진에서 가장 중심적으로 보이는 공간을 하나 고르세요. 특히 싱크볼, 배수구, 수전, 설거지 그릇, 싱크대 상판이 중심이면 반드시 sink를 고르세요. kitchen은 싱크대가 중심이 아닌 조리대·가스레인지·수납장·주방 전체가 중심인 사진에만 고르세요. visible_categories에는 사진에서 실제로 할 일이 보이는 organize(물건 분류·제자리 정리), clean(먼지·얼룩·부스러기 등 표면 정리), laundry(세탁이 필요한 천·의류·침구)가 있으면 넣으세요. cleaning_focus는 사진의 가장 뚜렷한 문제 하나로 고르세요: water_scale은 수전·타일·유리의 하얗고 딱딱한 물자국/광물 자국, soap_scum은 뿌연 비누막, grease는 끈적한 기름막, dust는 마른 먼지·부스러기, clutter는 물건이 섞여 정리가 필요한 상태, laundry는 세탁할 천·의류·침구입니다. 근거가 부족하면 unknown을 반환하세요. observations에는 보이는 위치·물건·상태를 한국어로 2~4개 적으세요. 사람의 성실성·정신건강·청결도 점수는 절대 만들지 말고, 보이지 않는 재질·세제 정보는 만들지 마세요. 사용자가 최종 확인해야 합니다.""",
+    "cleaning_area": """당신은 집안 공간 사진에서 관찰 가능한 정리·청소·세탁 후보를 설명하는 시각 관찰 도우미입니다. area_hint는 사진에서 가장 중심적으로 보이는 공간을 하나 고르세요. 특히 싱크볼, 배수구, 수전, 설거지 그릇, 싱크대 상판이 중심이면 반드시 sink를 고르세요. kitchen은 싱크대가 중심이 아닌 조리대·가스레인지·수납장·주방 전체가 중심인 사진에만 고르세요. visible_categories에는 사진에서 실제로 할 일이 보이는 organize(물건 분류·제자리 정리), clean(먼지·얼룩·부스러기 등 표면 정리), laundry(세탁이 필요한 천·의류·침구)가 있으면 넣으세요. cleaning_focus는 사진의 가장 뚜렷한 문제 하나로 고르세요: water_scale은 수전·타일·유리의 하얗고 딱딱한 물자국/광물 자국, soap_scum은 뿌연 비누막, grease는 끈적한 기름막, dust는 마른 먼지·부스러기, clutter는 물건이 섞여 정리가 필요한 상태, laundry는 세탁할 천·의류·침구입니다. severity는 사진에서 보이는 범위와 누적 정도가 가벼우면 light, 한 구역에 분명하면 moderate, 넓게 번졌거나 안전상 무리한 작업이 우려되면 heavy를 고르세요. surface_hint는 사진에서 실제로 보이는 표면 후보만 hard_surface, ceramic_tile, glass, metal, fabric, wood 중 고르고 판단 근거가 없으면 unknown을 반환하세요. 이는 표면 적합성 판정이 아니라 사용자가 확인할 관찰 후보입니다. observations에는 보이는 위치·물건·상태를 한국어로 2~4개 적으세요. 사람의 성실성·정신건강·청결도 점수는 절대 만들지 말고, 보이지 않는 재질·세제 정보는 만들지 마세요. 사용자가 최종 확인해야 합니다.""",
     "bathroom_check": """당신은 사진이 욕실인지 여부만 관찰하는 도우미입니다. 타일, 세면대, 변기, 욕조, 샤워기, 욕실 거울, 배수구처럼 사진에서 보이는 욕실 단서가 충분할 때만 is_bathroom을 true로 반환하세요. 방, 책상, 수납장, 주방, 거실처럼 욕실 단서가 없거나 사진만으로 확신할 수 없으면 false를 반환하세요. observations에는 보이는 단서만 1~3개 한국어로 적으세요. 청소 방법, 사람 평가, 재질·제품 판단, 사진에 없는 사실은 만들지 마세요.""",
     "before_after": "두 사진을 반드시 비교 관찰하세요. 먼저 싱크대 모서리·수도꼭지·배수구, 책상 모서리·서랍, 소파 쿠션·팔걸이처럼 같은 위치임을 보여 주는 고정 기준점을 2개 이상 찾으세요. 기준점이 충분히 일치하지 않으면 same_target은 false입니다. 조명·촬영 거리·그림자만 달라진 경우에는 변화로 단정하지 마세요. same_target이 false이거나 관찰 근거가 부족하면 mission_checks의 세 값은 모두 false이고 mission_evidence의 세 배열은 모두 빈 배열입니다. same_target이 true면 BEFORE와 AFTER의 같은 영역을 항목별로 다시 확인하세요. organize는 물건이 분류되거나 제자리에 놓여 공간이 정리된 경우, clean은 보이는 먼지·부스러기·얼룩·물때가 줄어든 경우, laundry는 세탁 대상 천·의류·침구가 분리·수거되거나 정돈된 경우에만 true입니다. true인 항목은 mission_evidence에 사진에서 확인한 짧은 근거 1~2개를 적고, false 항목은 빈 배열로 반환하세요. 선택하지 않은 범주는 반드시 false와 빈 배열입니다. 청결도 점수, 순위, 사람의 노력이나 성실성 평가는 금지합니다.",
 }
@@ -283,6 +285,33 @@ def verify_supabase_route(context: dict[str, Any]) -> bool:
     )
 
 
+def fetch_supabase_guide_enrichment(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """강도·표면별 검수 안내와 제품 추천은 서버 전용 Supabase RPC에서만 읽는다."""
+    supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    server_key, key_type = get_supabase_server_key()
+    if not supabase_url or not server_key:
+        return None
+    headers = {"apikey": server_key, "Content-Type": "application/json"}
+    if key_type == "service_role":
+        headers["Authorization"] = f"Bearer {server_key}"
+    body = {
+        "p_locale": str(payload.get("locale") or "ko-KR"),
+        "p_area_hint": str(payload.get("area_hint") or "other"),
+        "p_cleaning_focus": str(payload.get("cleaning_focus") or "unknown"),
+        "p_severity": str(payload.get("severity") or "unknown"),
+        "p_surface_hint": str(payload.get("surface_hint") or "unknown"),
+    }
+    request = urllib.request.Request(
+        f"{supabase_url}/rest/v1/rpc/resolve_cleaning_guide_enrichment",
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=5) as response:
+        result = json.loads(response.read().decode("utf-8"))
+    return result if isinstance(result, dict) else None
+
+
 def create_cleaning_guide(payload: Any) -> dict[str, Any]:
     context = get_knowledge_repository().build_context(payload)
     try:
@@ -298,6 +327,18 @@ def create_cleaning_guide(payload: Any) -> dict[str, Any]:
         canonical_mode="canonical" if supabase_verified else "local_fallback",
     )
     response["knowledge_source"] = "supabase_release" if supabase_verified else "local_release_snapshot"
+    try:
+        enrichment = fetch_supabase_guide_enrichment(payload if isinstance(payload, dict) else {})
+    except Exception:
+        enrichment = None
+    if enrichment:
+        response["guide_enrichment"] = enrichment.get("guide_enrichment") or {}
+        response["recommendations"] = enrichment.get("recommendations") or []
+        response["recommendation_source"] = "supabase_catalog"
+    else:
+        response["guide_enrichment"] = {}
+        response["recommendations"] = []
+        response["recommendation_source"] = "local_catalog"
     return response
 
 

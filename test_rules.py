@@ -75,6 +75,48 @@ def test_supabase_secret_key_uses_apikey_header_only(monkeypatch) -> None:
     assert captured["timeout"] == 5
 
 
+def test_supabase_enrichment_keeps_the_server_key_on_the_server(monkeypatch) -> None:
+    captured = {}
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return server.json.dumps(
+                {
+                    "guide_enrichment": {"summary": "검수된 맞춤 안내"},
+                    "recommendations": [{"name": "테스트 제품"}],
+                }
+            ).encode("utf-8")
+
+    def urlopen(request, timeout):
+        captured["headers"] = {key.lower(): value for key, value in request.header_items()}
+        captured["body"] = server.json.loads(request.data.decode("utf-8"))
+        captured["url"] = request.full_url
+        captured["timeout"] = timeout
+        return Response()
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test-placeholder")
+    monkeypatch.setattr(server.urllib.request, "urlopen", urlopen)
+
+    result = server.fetch_supabase_guide_enrichment(
+        request_payload(area_hint="sink", cleaning_focus="grease", severity="moderate", surface_hint="metal")
+    )
+    assert result and result["guide_enrichment"]["summary"] == "검수된 맞춤 안내"
+    assert captured["headers"]["apikey"] == "sb_secret_test-placeholder"
+    assert "sb_secret_test-placeholder" not in captured["body"].values()
+    assert captured["body"]["p_area_hint"] == "sink"
+    assert captured["body"]["p_severity"] == "moderate"
+    assert captured["body"]["p_surface_hint"] == "metal"
+    assert captured["url"].endswith("/resolve_cleaning_guide_enrichment")
+    assert captured["timeout"] == 5
+
+
 def test_legacy_service_role_key_remains_compatible(monkeypatch) -> None:
     context = server.get_knowledge_repository().build_context(request_payload())
     retrieval = context["retrieval"]
@@ -127,6 +169,24 @@ def test_api_service_marks_verified_supabase_release_as_canonical(monkeypatch) -
     assert result["mode"] == "canonical"
     assert result["knowledge_source"] == "supabase_release"
     assert result["procedure_key"] == "bathroom-water-scale-v1"
+
+
+def test_cleaning_guide_exposes_supabase_enrichment_and_product_cards(monkeypatch) -> None:
+    monkeypatch.setattr(server, "verify_supabase_route", lambda _context: True)
+    monkeypatch.setattr(
+        server,
+        "fetch_supabase_guide_enrichment",
+        lambda _payload: {
+            "guide_enrichment": {"summary": "금속 싱크대의 기름때를 위한 검수 안내"},
+            "recommendations": [{"name": "주방 세정제", "query": "주방 세정제"}],
+        },
+    )
+    result = server.create_cleaning_guide(
+        request_payload(area_hint="sink", cleaning_focus="grease", severity="moderate", surface_hint="metal")
+    )
+    assert result["recommendation_source"] == "supabase_catalog"
+    assert result["guide_enrichment"]["summary"] == "금속 싱크대의 기름때를 위한 검수 안내"
+    assert result["recommendations"][0]["name"] == "주방 세정제"
 
 
 def test_model_failure_cannot_block_the_api(monkeypatch) -> None:
@@ -296,10 +356,27 @@ def test_weekly_photo_must_match_the_planned_place_before_loading_a_guide() -> N
     assert 'sink: ["sink", "kitchen"]' in script
     assert 'area: task.area' in script
     assert 'state.planGuide = { area: task.area, invalidPhoto: true' in script
-    assert "await loadWeeklyGuide(detected)" in script
+    assert "pendingConfirmation: true" in script
+    assert 'id="confirmPhotoAnalysis"' in script
+    assert "await loadWeeklyGuide(state.planDetected)" in script
     assert '"cleaning_area"' in backend
     assert "사진에서 실제로 관찰되는 공간을 먼저 판단" in backend
     assert "싱크볼, 배수구, 수전" in backend
+    assert '"severity"' in backend
+    assert '"surface_hint"' in backend
+
+
+def test_normal_mode_uses_supabase_enriched_guide_and_catalog_cards() -> None:
+    backend = (ROOT / "server.py").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "app.js").read_text(encoding="utf-8")
+    migration = (ROOT / "supabase" / "migrations" / "20260826000100_add_guide_enrichment_and_product_catalog.sql").read_text(encoding="utf-8")
+    assert "fetch_supabase_guide_enrichment" in backend
+    assert '"recommendation_source"' in backend
+    assert "guide.recommendations || []" in script
+    assert "guideEnrichment.summary" in script
+    assert "create table kb.guide_enrichments" in migration
+    assert "create table kb.product_recommendations" in migration
+    assert "enable row level security" in migration
 
 
 def test_photo_analysis_has_timeouts_and_a_manual_fallback() -> None:
