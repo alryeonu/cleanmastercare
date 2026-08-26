@@ -1,5 +1,6 @@
 # 개발일지 목록
 
+- [2026-08-26 · 기억의 나무 펫말과 사과 열매](2026-08-26-076-tree-sign-and-apple-fruits.md)
 - [2026-08-26 · AI 사진 인식 수정 팝업](2026-08-26-075-ai-photo-correction-dialog.md)
 - [2026-08-26 · 기억의 나무 주차 표기와 기본 잎 보강](2026-08-26-074-memory-tree-week-label-and-foliage.md)
 - [2026-08-26 · Supabase NORMAL 맞춤 청소 안내](2026-08-26-073-supabase-normal-guide-enrichment.md)

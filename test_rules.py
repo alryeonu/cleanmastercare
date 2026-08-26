@@ -251,6 +251,8 @@ def test_care_points_grow_a_memory_tree_without_a_seed_shop() -> None:
     assert "next.totalCarePoints += CARE_WEEKLY_FRUIT_BONUS;" in source
     assert 'id="activeMemoryTree"' in markup
     assert 'id="memoryTreeGrid"' in markup
+    assert "tree-week-sign" in source
+    assert "leaf-eleven" in source
     assert 'class="garden-stage-list"' not in markup
     assert 'data-crop-plot' not in markup
     assert 'id="plantSeed"' not in markup
@@ -269,6 +271,8 @@ def test_memory_tree_uses_cumulative_growth_elements_and_visible_naming() -> Non
     assert 'class="tree-fruits"' in markup
     assert ".tree-branch" in styles
     assert ".tree-leaf" in styles
+    assert ".tree-week-sign" in styles
+    assert "data-fruit-count=\"1\"" in styles
     assert "@keyframes memoryTreeGrow" in styles
     assert "@keyframes fruitAppear" in styles
     assert "prefers-reduced-motion:reduce" in styles

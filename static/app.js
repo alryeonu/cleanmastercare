@@ -1256,9 +1256,11 @@ function renderRoom() {
   const grid = $("#memoryTreeGrid");
   const activeTree = $("#activeMemoryTree");
   const treePositions = normalizeMemoryTreePositions(forest);
+  if (!activeTree.querySelector(".leaf-eight")) activeTree.querySelector(".tree-crown")?.insertAdjacentHTML("beforeend", '<i class="tree-leaf leaf-eight"></i><i class="tree-leaf leaf-nine"></i><i class="tree-leaf leaf-ten"></i><i class="tree-leaf leaf-eleven"></i>');
   activeTree.remove();
   grid.innerHTML = Array.from({ length: MEMORY_TREE_SLOT_COUNT }, (_, index) => `<div class="tree-grid-slot" data-tree-slot="${index}"></div>`).join("");
-  $(`[data-tree-slot="${treePositions.active}"]`, grid)?.append(activeTree);
+  const activeSlot = $(`[data-tree-slot="${treePositions.active}"]`, grid);
+  activeSlot?.append(activeTree);
   const points = forest.activeTreePoints;
   const fruitCount = Math.min(CARE_FRUITS_PER_WEEK, forest.activeTreeFruitCount || 0);
   const stage = activeTreeStage(fruitCount);
@@ -1267,6 +1269,7 @@ function renderRoom() {
   activeTree.dataset.stage = stage;
   activeTree.dataset.fruitCount = String(fruitCount);
   activeTree.setAttribute("aria-label", `${weekTitle}, 열매 ${fruitCount}개와 돌봄 ${points}포인트. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요.`);
+  activeSlot?.insertAdjacentHTML("beforeend", `<span class="tree-week-sign" aria-hidden="true">${escapeHtml(weekTitle)}</span>`);
   forest.orchardTrees.slice(0, MEMORY_TREE_SLOT_COUNT - 1).forEach((tree) => {
     const slot = $(`[data-tree-slot="${treePositions.orchard[tree.id]}"]`, grid);
     if (slot) slot.innerHTML = `<button type="button" class="orchard-tree draggable-tree ${tree.selectedBenefit ? "benefit-picked" : ""}" data-tree-id="${escapeHtml(tree.id)}" data-open-tree="${escapeHtml(tree.id)}" aria-label="완성된 기억의 열매. 드래그해 자리를 옮기거나 눌러 기록을 볼 수 있어요."><span class="tree-crown"></span><i>●</i></button>`;
